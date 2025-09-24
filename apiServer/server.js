@@ -4,6 +4,13 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 
 import employeeRoutes from './routes/employee.route.js';
+import productRoutes from './routes/product.route.js';
+import rawMaterialRoutes from './routes/rawMaterial.route.js';
+import stockSnapRoutes from './routes/stockSnap.route.js';
+import locationRoutes from './routes/location.route.js';
+import productionLogRoutes from './routes/productionLog.route.js';
+import billRoutes from './routes/bill.route.js';
+import partyRoutes from './routes/party.route.js';
 // import attendanceRoutes from './routes/attendance.js';
 
 dotenv.config();
@@ -24,6 +31,13 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Routes
 app.use('/api/employee', employeeRoutes);
+app.use('/api/product', productRoutes);
+app.use('/api/raw-material', rawMaterialRoutes);
+app.use('/api/stock-snap', stockSnapRoutes);
+app.use('/api/location', locationRoutes);
+app.use('/api/production-log', productionLogRoutes);
+app.use('/api/bill', billRoutes);
+app.use('/api/party', partyRoutes);
 // app.use('/api/attendance', attendanceRoutes);
 
 app.use((err, req, res, next) => {

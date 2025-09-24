@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const locationSchema = new mongoose.Schema(
+const rawMaterialSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -8,27 +8,30 @@ const locationSchema = new mongoose.Schema(
       trim: true,
       unique: true,
     },
-    type: {
+    code: {
       type: String,
-      enum: ["factory", "warehouse", "office"],
+      unique: true,
+    },
+    category: {
+      type: String,
+      enum: ["parts", "raw", "recycled", "packaging"],
       required: true,
     },
-    address: {
+    unitOfMeasurement: {
       type: String,
       required: true,
     },
-    contact: {
-      manager: String,
-      phone: String,
-      email: String,
+    costPerUnit: {
+      type: Number,
+      required: true,
     },
-    capacity: {
-      maxStockUnits: Number,
-      productionCapacity: Number,
+    reorderLevel: {
+      type: Number,
+      default: 0,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    intakeLevel: {
+      type: Number,
+      default: 0,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -45,6 +48,6 @@ const locationSchema = new mongoose.Schema(
   }
 );
 
-const Location = mongoose.model("Location", locationSchema);
+const RawMaterial = mongoose.model("RawMaterial", rawMaterialSchema);
 
-export default Location;
+export default RawMaterial;
