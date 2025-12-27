@@ -4,39 +4,58 @@ const rawMaterialSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, 'Material name is required'],
       trim: true,
-      unique: true,
+      unique: true, 
     },
     code: {
       type: String,
-      unique: true,
+      trim: true,
     },
     category: {
       type: String,
-      enum: ["parts", "raw", "recycled", "packaging"],
-      required: true,
+      required: [true, 'Category is required'],
+      enum: {
+        values: ["parts", "raw", "recycled", "packaging"],
+        message: 'Category must be one of: parts, raw, recycled, packaging'
+      },
     },
     unitOfMeasurement: {
       type: String,
-      required: true,
+      required: [true, 'Unit of measurement is required'],
+      enum: {
+        values: ['kg', 'g', 'litre', 'ml', 'unit', 'meter', 'cm'],
+        message: 'Unit must be one of: kg, g, litre, ml, unit, meter, cm'
+      }
     },
     costPerUnit: {
+      type: mongoose.Schema.Types.Decimal128, 
+      required: [true, 'Cost per unit is required'],
+      validate: {
+        validator: (v) => v >= 0,
+        message: 'Cost must be a positive number'
+      }
+    },
+    quantityOnHand: {
       type: Number,
       required: true,
+      default: 0,
+      min: [0, 'Quantity cannot be negative']
     },
     reorderLevel: {
       type: Number,
       default: 0,
+      min: [0, 'Reorder level cannot be negative']
     },
-    intakeLevel: {
+    reorderQuantity: { 
       type: Number,
       default: 0,
+      min: [0, 'Reorder quantity cannot be negative']
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: [true, 'createdBy User is required'],
     },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -47,6 +66,10 @@ const rawMaterialSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+rawMaterialSchema.index({ code: 1 }, { unique: true, sparse: true });
+
+rawMaterialSchema.index({ name: 'text' });
 
 const RawMaterial = mongoose.model("RawMaterial", rawMaterialSchema);
 

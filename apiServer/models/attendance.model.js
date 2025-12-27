@@ -1,32 +1,46 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-
-const AttendanceSchema = new mongoose.Schema({
-  employeeId: {
+const attendanceSchema = new mongoose.Schema({
+  employee: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Employee", 
+    ref: "Employee",
     required: true
   },
+  // This 'date' is for querying. It should be normalized to midnight.
   date: {
     type: Date,
     required: true
   },
-  inTime: { type: Date }, 
-  outTime: { type: Date }, 
+  inTime: {
+    type: Date
+  },
+  outTime: {
+    type: Date
+  },
   status: {
     type: String,
-    enum: ["present", "absent", "leave"],
-    default: "present"
-  },
-  hoursWorked: { type: Number, default: 0 }
-}, { timestamps: true });
-
-AttendanceSchema.pre("save", function(next) {
-  if (this.inTime && this.outTime) {
-    const totalMs = this.outTime - this.inTime;
-    this.hoursWorked = totalMs / (1000 * 60 * 60); 
+    enum: ["present", "absent", "leave", "half-day"],
+    required: [true, "Attendance status is required"]
   }
-  next();
+}, {
+  timestamps: true,
+  // --- THIS IS THE KEY ---
+  // Ensure virtuals are included when you send the doc as JSON
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-export const Attendance = mongoose.model("Attendance", AttendanceSchema);
+attendanceSchema.virtual('hoursWorked').get(function() {
+  if (this.inTime && this.outTime) {
+    const totalMs = this.outTime - this.inTime;
+    return totalMs / (1000 * 60 * 60); // Returns hours
+  }
+  return 0;
+});
+
+attendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
+
+attendanceSchema.index({ date: 1 });
+
+const Attendance = mongoose.model("Attendance", attendanceSchema);
+export default Attendance;

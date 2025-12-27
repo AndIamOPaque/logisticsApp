@@ -19,7 +19,7 @@ const deliverySchema = new mongoose.Schema(
     },
 
     content: [
-      {
+      { 
         itemType: { type: String, enum: ["rawMaterial", "product"], required: true },
         itemId: { type: Schema.Types.ObjectId, required: true },
         quantity: { type: Number, required: true },
@@ -27,6 +27,7 @@ const deliverySchema = new mongoose.Schema(
       },
     ],
 
+    locationId: { type: Schema.Types.ObjectId, ref: "Location" , required: true },
     billIds: [
       {
         type: Schema.Types.ObjectId,

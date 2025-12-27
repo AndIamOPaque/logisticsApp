@@ -1,12 +1,11 @@
 import { Router } from "express";
-import { createRawMaterial, getAllRawMaterials, getRawMaterialById, updateRawMaterial, deleteRawMaterial } from "../controllers/rawMaterial.controller.js";
+import { createRawMaterial, getRawMaterials, getRawMaterialById, updateRawMaterial } from "../controllers/rawMaterial.controller.js";
 
 const router = Router();
 
-router.get("/", getAllRawMaterials);
+router.get("/", getRawMaterials);
 router.get("/:id", getRawMaterialById);
 router.post("/", createRawMaterial);
 router.put("/:id", updateRawMaterial);
-router.delete("/:id", deleteRawMaterial);
 
 export default router;

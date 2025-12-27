@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alcohol Consumption Among Youth: Full Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Using Merriweather for titles (serif, academic) and DM Sans for body (sans-serif, clean) -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+/* 1. THE SETUP */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  /* Using a light, academic-inspired background */
+  background-color: #dbe4e8; /* Light blue-gray canvas */
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+  margin: 0;
+  min-height: 100vh;
+  padding: 20px 0;
+  place-items: center;
+}
+
+.slide-container {
+  align-items: center;
+  /* Cream background for the slides, as per academic theme */
+  background-color: #f3f0df; 
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 720px;
+  justify-content: center;
+  overflow: hidden;
+  padding: 60px;
+  position: relative;
+  width: 1280px;
+}
+
+/* 1.1 BACKGROUND STYLING (Subtle) */
+.slide-container::before {
+  content: '';
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 0;
+  background-color: #f3f0df;
+}
+
+.slide-container>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* 2. CONSISTENT TYPOGRAPHY */
+
+/* Headings Font - Merriweather */
+.slide-container h1,
+.slide-container h2,
+.slide-container h3 {
+  /* Deep Navy for high contrast and academic feel */
+  color: #003366; 
+  font-weight: 700;
+  font-family: 'Merriweather', serif;
+  margin: 0;
+}
+
+/* Body Text Font - DM Sans */
+.slide-container p,
+.slide-container li,
+.slide-container .subtitle,
+.slide-container .number-label,
+.slide-container .legend li,
+.slide-container .chart-summary,
+.slide-container .bar .label,
+.slide-container th,
+.slide-container td,
+.slide-container .ref-item {
+  /* Dark gray for readability */
+  color: #333333; 
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Consistent Font Sizes */
+.slide-container h1 {
+  font-size: 70px;
+  line-height: 1.1;
+}
+
+.slide-container .slide-title {
+  /* This is an h2 */
+  font-size: 44px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  text-align: left;
+  width: 100%;
+  color: #003366;
+  align-self: flex-start; /* Align title to the top-left */
+}
+
+.slide-container h3 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+/* Unified body text size */
+.slide-container p,
+.slide-container li,
+.slide-container .subtitle,
+.slide-container .legend li,
+.slide-container .chart-summary,
+.slide-container .bar .label,
+.slide-container th,
+.slide-container td {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.slide-container .subtitle {
+  font-weight: 400;
+  margin: 20px auto;
+  font-size: 24px;
+  color: #475569;
+}
+
+.slide-container .content-area {
+  align-items: center;
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 3. LAYOUT DEFINITIONS */
+
+.title-layout {
+  text-align: center;
+}
+
+.toc-layout,
+.text-layout,
+.references-layout {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align content to top */
+}
+
+.toc-layout ol,
+.text-layout ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 20px;
+}
+
+.toc-layout li {
+    font-family: 'Merriweather', serif;
+    font-size: 32px;
+    color: #333333;
+    line-height: 1.8;
+    text-align: center;
+}
+
+.text-layout ul {
+    list-style-type: disc;
+    padding-left: 40px; /* Indent bullets */
+}
+
+.text-layout li {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 24px;
+    color: #333333;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.references-layout .ref-list {
+    margin-top: 10px;
+}
+
+.references-layout .ref-item {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+
+/* 4. CHART STYLING (Copied from previous) */
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.bar {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+}
+
+.bar .label {
+  color: #333333;
+  flex: 0 0 280px; /* Increased label width */
+  font-weight: 700;
+  font-size: 20px;
+  text-align: right;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.bar .bar-inner {
+  background-color: #dce0e5; /* Lighter bar background */
+  border-radius: 8px;
+  flex-grow: 1;
+  height: 45px;
+}
+
+.bar .bar-fill {
+  align-items: center;
+  border-radius: 8px;
+  color: white;
+  display: flex;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  height: 100%;
+  justify-content: flex-end;
+  padding-right: 15px;
+}
+
+/* Chart Colors */
+.bar-fill-1 { background: linear-gradient(90deg, #2980b9, #3498db); }
+.bar-fill-2 { background: linear-gradient(90deg, #e67e22, #f39c12); }
+.bar-fill-3 { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+.bar-fill-4 { background: linear-gradient(90deg, #8e44ad, #9b59b6); }
+.bar-fill-5 { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+.bar-fill-6 { background: linear-gradient(90deg, #7f8c8d, #95a5a6); }
+
+
+.doughnut-chart-container {
+  align-items: center;
+  display: flex;
+  gap: 80px;
+  justify-content: center;
+  width: 100%;
+}
+
+.doughnut-chart {
+  border-radius: 50%;
+  height: 380px;
+  width: 380px;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.legend li {
+  align-items: center;
+  color: #333333;
+  display: flex;
+  font-size: 20px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.legend .color-box {
+  border-radius: 4px;
+  height: 22px;
+  margin-right: 15px;
+  width: 22px;
+}
+
+.chart-summary {
+  font-style: italic;
+  margin-top: 20px;
+  max-width: 90%;
+  text-align: center;
+  color: #475569;
+}
+
+/* Q&A Layout */
+.qa-layout {
+  text-align: center;
+  width: 100%;
+  align-self: center;
+}
+
+.qa-layout h2 {
+  font-size: 80px;
+  margin-bottom: 20px;
+  color: #003366;
+}
+
+.qa-layout p {
+  font-size: 24px;
+  color: #333333;
+}
+
+/* 5. PRINT-SPECIFIC STYLES */
+@media print {
+  body {
+    background-color: #ffffff; /* Print on white, not the canvas color */
+    display: block; /* Override grid layout */
+    padding: 0;
+    margin: 0;
+  }
+  
+  .slide-container {
+    width: 100%; /* Fill the page width */
+    height: 100vh; /* Fill the page height */
+    box-shadow: none; /* No shadows on paper */
+    border-radius: 0;
+    border: none;
+    padding: 60px; /* Keep the padding for content */
+    margin: 0;
+    page-break-after: always; /* KEY: Each slide becomes a separate page */
+    page-break-inside: avoid; /* Don't break a slide across pages */
+    overflow: hidden; /* Ensure no overflow */
+  }
+
+  /* Ensure the last slide doesn't add an extra blank page */
+  .slide-container:last-of-type {
+    page-break-after: avoid;
+  }
+
+  /* Hide any potential non-slide elements if they existed */
+  body > :not(.slide-container) {
+    display: none;
+  }
+}
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title_Slide -->
+<div class="slide-container" id="slide1">
+    <div class="title-layout">
+        <h1>Alcohol Consumption Among Indian Youth</h1>
+        <p class="subtitle">A Technical Report on Findings, Causes, and Perceptions</p>
+        <p class="subtitle">Date: 12th November 2025</p>
+        <p class="subtitle">Submitted to Dr.Anitha Devi</p>
+        <p class="subtitle">Submitted By: Krish Singh Kashyap, L23+L24 24BAI0049</p>
+    </div>
+</div>
+
+<!-- Slide 2: NEW Abstract -->
+<div class="slide-container" id="slide_abstract">
+    <div class="text-layout">
+        <h2 class="slide-title">Abstract</h2>
+        <ul>
+            <li><b>Objective:</b> To investigate the patterns, causes, and perceptions of alcohol consumption among Indian youth.</li>
+            <li><b>Methods:</b> A quantitative, cross-sectional survey was administered to assess demographics, consumption patterns, causes, and perceptions.</li>
+            <li style="margin-bottom: 5px;"><b>Key Findings:</b>
+                 <ul style="margin-top: 15px;">
+                    <li style="font-size: 20px; margin-bottom: 15px;">High prevalence (74.7%) with significant underage initiation (32.5%).</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">Peer pressure identified as the #1 driver (45.9%).</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">Critical "awareness gap": 69.9% are unaware of laws they deem ineffective.</li>
+                </ul>
+            </li>
+            <li><b>Conclusion:</b> Consumption is a prevalent, socially-driven issue. A paradox exists where awareness is the desired solution, yet knowledge of current laws is extremely low.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 3: NEW Acknowledgements -->
+<div class="slide-container" id="slide_acknowledgements">
+    <div class="text-layout">
+        <h2 class="slide-title">Acknowledgements</h2>
+        <ul>
+            <li>Sincere gratitude to <b>Dr. Anitha Devi</b> for her profound guidance, unwavering support, and insightful feedback throughout this project.</li>
+            <li>Special thanks to all friends and colleagues who helped in circulating the survey and gathering responses.</li>
+            <li>We also extend our appreciation to all the participants who generously gave their time and shared their valuable perspectives.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 4: Table of Contents (was slide2) -->
+<div class="slide-container" id="slide2">
+    <div class="toc-layout">
+        <h2 class="slide-title" style="text-align: center; margin-bottom: 60px;">Table of Contents</h2>
+        <ol>
+            <li>01. Introduction</li>
+            <li>02. Methodology</li>
+            <li>03. Literature Review</li>
+            <li>04. Findings and Discussion</li>
+            <li>05. Conclusion</li>
+            <li>06. Recommendations</li>
+            <li>07. References</li>
+            <li>08. Appendix</li>
+        </ol>
+    </div>
+</div>
+
+<!-- Slide 5: Introduction (was slide3) -->
+<div class="slide-container" id="slide3">
+    <div class="text-layout">
+        <h2 class="slide-title">01. Introduction</h2>
+        <ul>
+            <li><b>Background:</b> Growing concern over alcohol use as a public health issue among youth in India, driven by rapid social and cultural shifts.</li>
+            <li><b>Significance:</b> Early-onset drinking is a strong predictor of alcohol dependence, risky behaviors, and long-term health complications.</li>
+            <li><b>Research Questions:</b>
+                <ul>
+                    <li style="font-size: 20px; margin-bottom: 15px;">What are the prevalence and patterns of alcohol use?</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">What are the primary drivers and perceived influences?</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">What is the awareness of consequences and potential solutions?</li>
+                </ul>
+            </li>
+            <li><b>Objectives:</b> To quantify consumption patterns, identify key causes, and assess perceptions to inform targeted recommendations.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 6: Methodology (was slide4) -->
+<div class="slide-container" id="slide4">
+    <div class="text-layout">
+        <h2 class="slide-title">02. Methodology</h2>
+        <ul>
+            <li><b>Research Design:</b> A quantitative, cross-sectional survey design was employed.</li>
+            <li><b>Sample Population:</b> Respondents comprised youth from various backgrounds, with a majority (65.1%) aged 18-25, including students and employed individuals.</li>
+            <li><b>Data Collection Tool:</b> A structured questionnaire was administered, divided into five sections:
+                <ul>
+                    <li style="font-size: 20px; margin-bottom: 15px;">Demographics</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">Consumption Patterns</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">Causes & Influences</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">Perceptions & Effects</li>
+                    <li style="font-size: 20px; margin-bottom: 15px;">Awareness & Solutions</li>
+                </ul>
+            </li>
+            <li><b>Data Analysis:</b> Descriptive statistics (frequencies and percentages) were calculated to summarize the findings.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 7: Literature Review (was slide5) -->
+<div class="slide-container" id="slide5">
+    <div class="text-layout">
+        <h2 class="slide-title">03. Literature Review: Key Themes</h2>
+        <ul>
+            <li><b>Global Trend:</b> Early-onset drinking is a strong predictor of future alcohol dependence and related health issues (WHO, 2022).</li>
+            <li><b>Key Drivers:</b> Peer pressure is consistently cited as the single most significant factor in initiation (Singh, 2022).</li>
+            <li><b>Media Influence:</b> The normalization of alcohol in media and advertising is strongly linked to positive expectancies among youth (Kumar & Reddy, 2019).</li>
+            <li><b>Consequences:</b> Research links youth alcohol use to poor academic performance, increased absenteeism, and involvement in risky behaviors like violence and unsafe driving (Chatterjee, 2020).</li>
+            <li><b>The "Awareness Gap":</b> Studies show a disconnect where youth are aware of general risks but have poor knowledge of specific laws and long-term health consequences (Dasgupta, 2022).</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 8: Findings - Section Title (was slide6) -->
+<div class="slide-container" id="slide6">
+    <div class="title-layout">
+        <h1>04. Findings and Discussion</h1>
+        <p class="subtitle">Key Survey Results</p>
+    </div>
+</div>
+
+<!-- Slide 9: Findings - Demographics (Age) (was slide7) -->
+<div class="slide-container" id="slide7">
+    <h2 class="slide-title">04. Findings: Respondent Age Distribution</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <!-- Data: 10.3% / 41.8% / 23.3% / 17.1% / 7.5% -->
+            <div class="bar">
+                <div class="label">18–21</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-1" style="width: 41.8%;">41.8%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">22–25</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-2" style="width: 23.3%;">23.3%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">26–30</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-3" style="width: 17.1%;">17.1%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Below 18</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-4" style="width: 10.3%;">10.3%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Above 30</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-6" style="width: 7.5%;">7.5%</div></div>
+            </div>
+        </div>
+        <p class="chart-summary">The majority of respondents (65.1%) fall within the 18-25 age range, a key demographic for this study.</p>
+    </div>
+</div>
+
+<!-- Slide 10: Findings - Prevalence (was slide8) -->
+<div class="slide-container" id="slide8">
+    <h2 class="slide-title">04. Findings: Prevalence of Alcohol Use</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <div class="doughnut-chart-container">
+                <!-- Data: 74.7% Yes / 25.3% No -->
+                <div class="doughnut-chart" style="background: conic-gradient(#2980b9 0% 74.7%, #95a5a6 74.7% 100%);"></div>
+                <ul class="legend">
+                    <li><div class="color-box" style="background-color: #2980b9;"></div>Have consumed alcohol (74.7%)</li>
+                    <li><div class="color-box" style="background-color: #95a5a6;"></div>Have not consumed alcohol (25.3%)</li>
+                </ul>
+            </div>
+        </div>
+        <p class="chart-summary">Nearly three-quarters of all respondents report having consumed alcohol at some point.</p>
+    </div>
+</div>
+
+<!-- Slide 11: Findings - Age of First Use (was slide9) -->
+<div class="slide-container" id="slide9">
+    <h2 class="slide-title">04. Findings: Age of First Alcohol Use</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <!-- Data: 2.8% / 29.7% / 47.6% / 20% -->
+            <div class="bar">
+                <div class="label">19–21</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-1" style="width: 47.6%;">47.6%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">15–18</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-2" style="width: 29.7%;">29.7%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Above 21</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-3" style="width: 20.0%;">20.0%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Below 15</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-5" style="width: 2.8%;">2.8%</div></div>
+            </div>
+        </div>
+        <p class="chart-summary">A significant portion (32.5%) started drinking before age 19, highlighting an issue with underage consumption.</p>
+    </div>
+</div>
+
+<!-- Slide 12: Findings - Frequency (was slide10) -->
+<div class="slide-container" id="slide10">
+    <h2 class="slide-title">04. Findings: Frequency of Consumption (Among Drinkers)</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <div class="doughnut-chart-container">
+                <!-- Data: 40.4% / 34.9% / 20.5% / 4.1% -->
+                <div class="doughnut-chart" style="background: conic-gradient(#27ae60 0% 40.4%, #2980b9 40.4% 75.3%, #e67e22 75.3% 95.8%, #c0392b 95.8% 100%);"></div>
+                <ul class="legend">
+                    <li><div class="color-box" style="background-color: #27ae60;"></div>Rarely (Special occasions) (40.4%)</li>
+                    <li><div class="color-box" style="background-color: #2980b9;"></div>Occasionally (Monthly) (34.9%)</li>
+                    <li><div class="color-box" style="background-color: #e67e22;"></div>Frequently (Weekly) (20.5%)</li>
+                    <li><div class="color-box" style="background-color: #c0392b;"></div>Regularly (Daily/Near daily) (4.1%)</li>
+                </ul>
+            </div>
+        </div>
+        <p class="chart-summary">While most (75.3%) drink occasionally or rarely, over 24% report frequent or regular consumption.</p>
+    </div>
+</div>
+
+<!-- Slide 13: Findings - Reasons (was slide11) -->
+<div class="slide-container" id="slide11">
+    <h2 class="slide-title">04. Findings: Primary Reasons for First Use</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <!-- Data: 45.9% / 22.6% / 12.3% / 12.3% / 6.8% -->
+            <div class="bar">
+                <div class="label">Peer pressure</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-1" style="width: 45.9%;">45.9%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Curiosity</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-2" style="width: 22.6%;">22.6%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Stress relief</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-3" style="width: 12.3%;">12.3%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Family / Social influence</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-4" style="width: 12.3%;">12.3%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Other</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-6" style="width: 6.8%;">6.8%</div></div>
+            </div>
+        </div>
+        <p class="chart-summary">Peer pressure is the most-cited reason for initiating alcohol use, nearly double the next reason (curiosity).</p>
+    </div>
+</div>
+
+<!-- Slide 14: Findings - Influences (was slide12) -->
+<div class="slide-container" id="slide12">
+    <h2 class="slide-title">04. Findings: Perceived Social Influences (% Who Agree)</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <!-- Data: 70.5% / 67.8% -->
+            <div class="bar">
+                <div class="label">"Peer pressure is a major cause"</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-1" style="width: 70.5%;">70.5%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">"Media normalizes alcohol"</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-2" style="width: 67.8%;">67.8%</div></div>
+            </div>
+        </div>
+        <p class="chart-summary">A strong majority of respondents agree that both peer pressure and media play significant roles in youth alcohol consumption.</p>
+    </div>
+</div>
+
+<!-- Slide 15: Findings - Consequences (was slide13) -->
+<div class="slide-container" id="slide13">
+    <h2 class="slide-title">04. Findings: Perceived Consequences (% Who Agree)</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <!-- Data: 75.4% / 57.6% -->
+            <div class="bar">
+                <div class="label">Contributes to risky behaviors</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-5" style="width: 75.4%;">75.4%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Negatively affects academics/work</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-2" style="width: 57.6%;">57.6%</div></div>
+            </div>
+        </div>
+        <p class="chart-summary">Respondents strongly associate alcohol use with negative outcomes, especially risky behaviors (75.4%).</p>
+    </div>
+</div>
+
+<!-- Slide 16: Findings - Awareness Gap (was slide14) -->
+<div class="slide-container" id="slide14">
+    <h2 class="slide-title">04. Findings: The "Awareness Gap"</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <div class="doughnut-chart-container">
+                <!-- Data: 69.9% No / 30.1% Yes -->
+                <div class="doughnut-chart" style="background: conic-gradient(#e67e22 0% 69.9%, #2980b9 69.9% 100%);"></div>
+                <ul class="legend">
+                    <li><div class="color-box" style="background-color: #e67e22;"></div>No, not aware of laws (69.9%)</li>
+                    <li><div class="color-box" style="background-color: #2980b9;"></div>Yes, aware of laws (30.1%)</li>
+                </ul>
+            </div>
+        </div>
+        <p class="chart-summary">A critical gap exists: nearly 70% of respondents are not aware of the laws intended to regulate alcohol.</p>
+    </div>
+</div>
+
+<!-- Slide 17: Findings - Solutions (was slide15) -->
+<div class="slide-container" id="slide15">
+    <h2 class="slide-title">04. Findings: Most Effective Way to Reduce Alcoholism</h2>
+    <div class="content-area" style="flex-direction: column; justify-content: center;">
+        <div class="chart-container">
+            <!-- Data: 39% / 24.7% / 20.5% / 15.8% -->
+            <div class="bar">
+                <div class="label">Awareness Campaigns</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-1" style="width: 39.0%;">39.0%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Stricter Laws</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-2" style="width: 24.7%;">24.7%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Family / Community Support</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-3" style="width: 20.5%;">20.5%</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">Accessible Counseling / Rehab</div>
+                <div class="bar-inner"><div class="bar-fill bar-fill-4" style="width: 15.8%;">15.8%</div></div>
+            </div>
+        </div>
+        <p class="chart-summary">"Awareness campaigns" are seen as the most effective solution, which 75.3% of respondents would support in schools/colleges.</p>
+    </div>
+</div>
+
+<!-- Slide 18: Conclusion (was slide16) -->
+<div class="slide-container" id="slide16">
+    <div class="text-layout">
+        <h2 class="slide-title">05. Conclusion</h2>
+        <ul>
+            <li><b>Prevalent & Early:</b> Alcohol consumption is a widespread norm (74.7%) for this group, with initiation frequently occurring underage (32.5%).</li>
+            <li><b>Socially Driven:</b> The data strongly indicates that initiation is not a personal choice but a social one, driven by peer pressure and media normalization.</li>
+            <li><b>Risks Understood:</b> Respondents are not ignorant of the dangers. They clearly associate alcohol with risky behaviors (75.4%) and academic/work decline (57.6%).</li>
+            <li><b>The "Awareness Paradox":</b> The central finding is a paradox. Respondents believe "Awareness" is the #1 solution, yet 69.9% are *unaware* of current laws, which they (52.1%) deem ineffective.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 19: Recommendations (was slide17) -->
+<div class="slide-container" id="slide17">
+    <div class="text-layout">
+        <h2 class="slide-title">06. Recommendations</h2>
+        <ul>
+            <li><b>Launch Peer-Focused Campaigns:</b> Move beyond "just say no." Interventions must focus on building skills to resist peer pressure and de-normalize binge drinking.</li>
+            <li><b>Integrate Mandatory Awareness Programs:</b> Leverage the 75.3% support for programs in schools/colleges. Make them mandatory and focus on both health and legal risks.</li>
+            <li><b>Close the Legal "Awareness Gap":</b> Develop a public information campaign to educate youth on specific laws (legal age, DUI) via social media channels.</li>
+            <li><b>Strengthen Media Regulations:</b> Enforce stricter rules on alcohol advertising, including surrogate ads and product placement, reflecting the 54.1% support for an ad ban.</li>
+            <li><b>Improve Access to Support:</b> Ensure confidential, youth-friendly counseling and support services are visible, accessible, and destigmatized.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 20: References (was slide18) -->
+<div class="slide-container" id="slide18">
+    <div class="references-layout">
+        <h2 class="slide-title">07. References</h2>
+        <div class="ref-list">
+            <p class="ref-item">Chatterjee, A. (2020). Alcohol use and involvement in risky behaviors among urban youth in India. <i>Indian Journal of Social Psychiatry</i>, 36(2), 112-119.</p>
+            <p class="ref-item">Dasgupta, R. (2022). Legal literacy and alcohol consumption: A study of university students in Delhi. <i>Journal of Legal Studies and Social Practice</i>, 4(1), 45-59.</p>
+            <p class="ref-item">Jain, S., et al. (2021). The impact of alcohol consumption on academic performance and mental well-being of college students. <i>National Journal of Community Medicine</i>, 12(4), 78-83.</p>
+            <p class="ref-item">Kumar, P., & Reddy, M. (2019). Portrayal of alcohol in Indian cinema and its influence on youth attitudes. <i>Journal of Media & Communication Studies</i>, 11(3), 201-210.</p>
+            <p class="ref-item">MOHFW, Govt. of India. (2023). <i>National report on substance use and youth health</i>. New Delhi: MOHFW Press.</p>
+            <p class="ref-item">Sharma, R., & Gupta, S. (2S. (2023). <i>Youth in transition: Alcohol consumption in a changing India</i>. New Delhi: Oxford University Press.</p>
+            <p class="ref-item">Singh, T. (2022). The role of peer influence on substance initiation among adolescents in Punjab. <i>Journal of Adolescent Health</i>, 50(5), 514-520.</p>
+            <p class="ref-item">World Health Organization (WHO). (2022). <i>Global report on alcohol and health 2022</i>. Geneva: WHO.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 21: Appendix (was slide19) -->
+<div class="slide-container" id="slide19">
+    <div class="text-layout">
+        <h2 class="slide-title">08. Appendix</h2>
+        <ul>
+            <li>Full Survey Questionnaire</li>
+            <li> https://docs.google.com/forms/d/e/1FAIpQLSc8OpXW0cnlkgplEeAz40SwBeyIztSOekGBGCn5msRUuvwhw/viewform?usp=header</li>
+<li>Response Sheet: https://docs.google.com/spreadsheets/d/1VFpNW-euNsWwBHvktnloXYPdIR2xUe-MI--14WVhDRQ/edit?usp=sharing</li>
+
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 22: Q&A (was slide20) -->
+<div class="slide-container" id="slide20">
+    <div class="qa-layout">
+        <h2>Thank You</h2>
+        <p>Questions & Discussion</p>
+    </div>
+</div>
+
+</body>
+</html>
