@@ -1,9 +1,29 @@
 import Product from "../models/product.model.js";
+import { correctStock, getStockLevels } from "../services/inventory.service.js";
 
-export const getAllProducts = async (req, res, next) => {
+export const getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find().populate("rawMaterials.material");
-    res.json(products);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const products = await Product.find()
+      .populate("rawMaterials.material", "name code costPerUnit")
+      .populate("createdBy", "name email")
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Product.countDocuments();
+
+    res.json({
+      data: products,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (err) {
     next(err);
   }
@@ -11,7 +31,11 @@ export const getAllProducts = async (req, res, next) => {
 
 export const getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate("rawMaterials.material");
+    const product = await Product.findById(req.params.id)
+      .populate("rawMaterials.material")
+      .populate("createdBy", "name")
+      .lean();
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -23,9 +47,16 @@ export const getProductById = async (req, res, next) => {
 
 export const createProduct = async (req, res, next) => {
   try {
-    const newProduct = new Product(req.body);
+    const productData = {
+      ...req.body,
+      createdBy: req.user._id,
+      updatedBy: req.user._id
+    };
+
+    const newProduct = new Product(productData);
     const savedProduct = await newProduct.save();
-    res.status(201).json(savedProduct);
+
+    res.status(201).json({success:true, data:savedProduct});
   } catch (err) {
     next(err);
   }
@@ -33,11 +64,22 @@ export const createProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
+    const updateData = {
+      ...req.body,
+      updatedBy: req.user._id
+    };
+
+    delete updateData.createdBy;
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true }
+      updateData,
+      { 
+        new: true, 
+        runValidators: true 
+      }
     );
+
     if (!updatedProduct) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -49,12 +91,43 @@ export const updateProduct = async (req, res, next) => {
 
 export const deleteProduct = async (req, res, next) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    const deletedProduct = await Product.findByIdAndUpdate(req.params.id, {isActive : false});
+    
     if (!deletedProduct) {
       return res.status(404).json({ message: "Product not found" });
     }
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
     next(err);
+  }
+};
+
+export const correctProductStock = async (req, res, next) => {
+  try {
+    const safeUpdate = {
+      ...req.body,
+      item: req.params.id,
+      itemModel: "Product",
+      createdBy: req.user_id,
+    }
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success:false, message: "Product not found" });
+    }
+    await correctStock(safeUpdate, req.user._id);
+
+    res.json({ success: true, message: "Stock corrected successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getProductStockLevels = async (req, res, next) =>{
+  try{
+    const stockByLocation = await getStockLevels('Product', req.params.id);
+    res.status(200).json({success:true, data: stockByLocation});
+  }catch(error){
+    next(error);
   }
 };

@@ -2,7 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
+import assetRoutes from './routes/asset.route.js';
+import setupCronJobs from './scheduler.js';
 import employeeRoutes from './routes/employee.route.js';
 import productRoutes from './routes/product.route.js';
 import rawMaterialRoutes from './routes/rawMaterial.route.js';
@@ -10,7 +11,9 @@ import locationRoutes from './routes/location.route.js';
 import billRoutes from './routes/bill.route.js';
 import partyRoutes from './routes/party.route.js';
 import attendanceRoutes from './routes/attendance.route.js';
-
+import userRoutes from './routes/user.route.js';
+import deliveryRoutes from './routes/delivery.route.js';
+import productionRoutes from './routes/production.route.js'
 dotenv.config();
 
 const app = express();
@@ -27,9 +30,12 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.error("MongoDB connection error:", err));
 
-// Routes
+app.use('/api/user', userRoutes);
+app.use('/api/asset', assetRoutes);
+app.use('/api/delivery', deliveryRoutes);
 app.use('/api/employee', employeeRoutes);
 app.use('/api/product', productRoutes);
+app.use('/api/production-order', productionRoutes);
 app.use('/api/raw-material', rawMaterialRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/bill', billRoutes);
@@ -43,7 +49,7 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error"
   });
 });
-
+setupCronJobs();
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -20,11 +20,10 @@ const stockSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0,
-    min: [0, "Stock cannot be negative"] // Optional: Strict mode prevents overdrafts
+    min: [0, "Stock cannot be negative"] 
   }
 }, { timestamps: true });
 
-// Compound index is CRITICAL for speed and uniqueness
 stockSchema.index({ item: 1, location: 1 }, { unique: true });
 
 const Stock = mongoose.model("Stock", stockSchema);

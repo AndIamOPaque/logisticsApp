@@ -1,25 +1,26 @@
-import express from 'express';
-import {
-  clockIn,
-  clockOut,
-  markStatus,
-  getDailyReport,
-  getEmployeeReport,
-  getSingleAttendanceRecord
-} from '../controllers/attendance.controller.js';
-import { protectHardware } from '../middlewares/auth.middleware.js';
+import express from "express";
+import * as AttendanceController from "../controllers/attendance.controller.js";
+// import { protect, adminOnly } from "../middleware/authMiddleware.js"; 
 
 const router = express.Router();
 
-router.post('/clock-in', protectHardware, clockIn); 
+// router.use(protect);
 
-router.patch('/clock-out', protectHardware, clockOut); 
+// --- DAILY ACTIONS (Workers/Managers) ---
+router.post("/clock-in", AttendanceController.clockIn);
+router.post("/clock-out", AttendanceController.clockOut);
 
-// admin ke liye hai baaki. protect and admin middleware lagana
-router.post('/status', markStatus); // We would add 'protect' and 'admin' middleware here
-router.get('/report/daily', getDailyReport); // 'protect', 'admin'
-router.get('/report/employee', getEmployeeReport); // 'protect'
-router.get('/record', getSingleAttendanceRecord); // 'protect'
+// --- MANAGEMENT & CORRECTIONS ---
+// Mark status manually (e.g. absent/leave) without clocking in
+router.post("/status", AttendanceController.markStatus); 
 
+// Correct a mistake in a specific record (Triggers the Financial Reversal logic)
+//admin only bnade
+router.patch("/:id", AttendanceController.updateRecord);
+
+// --- REPORTS ---
+router.get("/daily", AttendanceController.getDailyReport); // ?date=2023-10-27
+router.get("/employee", AttendanceController.getEmployeeReport); // ?employeeId=...&month=10&year=2023
+router.get("/single", AttendanceController.getSingleAttendanceRecord); // ?employeeId=...&date=...
 
 export default router;

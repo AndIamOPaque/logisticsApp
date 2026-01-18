@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Product from "../models/product.model.js";
 import ProductionOrder from "../models/productionOrder.model.js";
+import Location from "../models/location.model.js";
 import { moveInventory } from "./inventory.service.js";
 import RawMaterial from "../models/rawMaterial.model.js";
 
@@ -19,11 +20,10 @@ export const logProductionOutput = async (orderId, quantityProduced, userId) => 
         throw new Error("Invalid or closed order.");
     }
 
-    // 1. Add Finished Product to Stock
     await moveInventory({
         item: order.product,
         itemModel: 'Product',
-        quantity: quantityProduced, // Positive (Add)
+        quantity: quantityProduced, 
         location: order.location,
         purpose: 'production',
         referenceId: order._id,
@@ -31,9 +31,8 @@ export const logProductionOutput = async (orderId, quantityProduced, userId) => 
         userId,
         session
     });
-
-    // 2. Update Log
-    order.actualQuantity = (order.actualQuantity || 0) + quantityProduced;
+    order.status = 'in_progress';
+    order.quantityProduced = (order.quantityProduced || 0) + quantityProduced;
     order.updatedBy = userId;
     
     await order.save({ session });
@@ -62,13 +61,12 @@ export const logMaterialUsage = async (orderId, materialId, quantityUsed, userId
     if (!order || ['completed', 'cancelled'].includes(order.status)) {
         throw new Error("Invalid or closed order.");
     }
-
-    // 1. Deduct Raw Material from Stock
     await moveInventory({
         item: materialId,
         itemModel: 'RawMaterial',
-        quantity: -quantityUsed, // Negative (Remove)
+        quantity: -quantityUsed, 
         location: order.location,
+        //before this any item moved to the manufacturing plant should be counted as a dellivery and marked usiliye phir order location se deduct kar rhe
         purpose: 'production',
         referenceId: order._id,
         referenceModel: 'ProductionOrder',
@@ -76,8 +74,6 @@ export const logMaterialUsage = async (orderId, materialId, quantityUsed, userId
         session
     });
 
-    // 2. Update the "Consumed Materials" Ledger in the Order
-    // This looks complex but it just finds the material in the array and adds to it
     const existingEntry = order.consumedMaterials.find(
         m => m.material.toString() === materialId
     );
@@ -116,30 +112,25 @@ export const returnUnusedMaterial = async (orderId, materialId, quantityReturned
         throw new Error("Invalid or closed order.");
     }
 
-    // 1. Safety Check: Can't return more than you took!
     const entry = order.consumedMaterials.find(
         m => m.material.toString() === materialId
     );
     
-    // If we never used this material, or trying to return 6kg when we only took 5kg
     if (!entry || entry.quantity < quantityReturned) {
         throw new Error(`Cannot return ${quantityReturned}. Only ${entry ? entry.quantity : 0} was issued.`);
     }
-
-    // 2. Add Stock Back (Positive Move)
+    
     await moveInventory({
         item: materialId,
         itemModel: 'RawMaterial',
-        quantity: quantityReturned, // Positive (Add to shelf)
+        quantity: quantityReturned, 
         location: order.location,
-        purpose: 'correction', // or 'return'
+        purpose: 'correction', 
         referenceId: order._id,
         referenceModel: 'ProductionOrder',
         userId,
         session
     });
-
-    // 3. Update the Log (Reduce Consumption)
     entry.quantity -= quantityReturned;
 
     order.updatedBy = userId;
@@ -165,16 +156,16 @@ export const createProductionOrder = async (orderData, userId) => {
     const safeData = {
       product: orderData.product,
       location: orderData.location,
-      targetQuantity: orderData.targetQuantity,
+      quantityToProduce: orderData.quantityToProduce,
       notes: orderData.notes,
       date: orderData.date || new Date(), 
       createdBy: userId,
       updatedBy: userId,
       
       status: 'pending',
-      actualQuantity: 0,
+      quantityProduced: 0,
       consumedMaterials: []
-    };
+    };  
     const productExists = await Product.exists({ _id: safeData.product }).session(session);
     if (!productExists) throw new Error(`Product not found: ${safeData.product}`);
 
@@ -249,13 +240,14 @@ const calculateVarianceReport = async (session, order) => {
   let report = "\n\n--- FINAL VARIANCE REPORT ---\n";
 
   for (const recipeItem of product.rawMaterials) {
-    const standardNeeded = recipeItem.quantity * order.actualQuantity;
+    const standardNeeded = recipeItem.quantity * order.quantityProduced;
 
     const consumedEntry = order.consumedMaterials.find(
       entry => entry.material.toString() === recipeItem.material._id.toString()
     );
     const actualUsed = consumedEntry ? consumedEntry.quantity : 0;
-    const variance = actualUsed - standardNeeded;
+    consumedEntry.variance = actualUsed - standardNeeded;
+    
     
     report += `\nMaterial: ${recipeItem.material.name}`;
     report += `\n - Standard: ${standardNeeded.toFixed(2)}`;
@@ -265,7 +257,7 @@ const calculateVarianceReport = async (session, order) => {
     }
     report += `\n - Actual:   ${actualUsed.toFixed(2)}`;
     
-    report += `\n - Variance: ${variance.toFixed(2)} ${variance > 0 ? '(WASTE)' : '(EFFICIENT)'}`;
+    report += `\n - Variance: ${consumedEntry.variance.toFixed(2)} ${consumedEntry.variance > 0 ? '(WASTE)' : '(EFFICIENT)'}`;
   }
 
   return report;

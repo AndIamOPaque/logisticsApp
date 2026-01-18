@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Delivery from "../models/delivery.model.js";
 import Product from "../models/product.model.js";
 import RawMaterial from "../models/rawMaterial.model.js";
+import Employee from "../models/employee.model.js";
 import Stock from "../models/stock.model.js";
 import { moveInventory } from "./inventory.service.js";
 
@@ -28,7 +29,16 @@ export const updateDeliveryStatus = async (deliveryId, newStatus, userId) => {
     else if (delivery.direction === 'in' && newStatus === 'delivered') {
         await processStockMovement(delivery, 1, userId, session); 
     }
-
+    if (newStatus === 'delivered' && delivery.driverId && !delivery.isDriverPaid && delivery.tripCost > 0) {
+        
+        const driver = await Employee.findById(delivery.driverId).session(session);
+        
+        if (driver) {
+            driver.balance += delivery.tripCost;
+            await driver.save({ session });
+            delivery.isDriverPaid = true; 
+        }
+    }
     delivery.status = newStatus;
     if (newStatus === 'in-transit') delivery.departureTime = new Date();
     if (newStatus === 'delivered') delivery.arrivalTime = new Date();
@@ -113,33 +123,25 @@ export const createDelivery = async (deliveryData, userId) => {
     }
 };
 
-import Delivery from "../models/delivery.model.js";
-
 export const queryDeliveries = async (filters, page = 1, limit = 20) => {
   const query = {};
 
-  // 1. Exact Matches (Simple)
   if (filters.status) query.status = filters.status;
   if (filters.direction) query.direction = filters.direction;
   if (filters.locationId) query.locationId = filters.locationId;
 
-  // 2. Date Range (Complex)
-  // "From startDate TO endDate"
   if (filters.startDate || filters.endDate) {
     query.createdAt = {};
     if (filters.startDate) {
-      query.createdAt.$gte = new Date(filters.startDate); // Greater Than or Equal
+      query.createdAt.$gte = new Date(filters.startDate); 
     }
     if (filters.endDate) {
-      // PRO TIP: Set endDate to the END of that day (23:59:59) to include items from that day
       const end = new Date(filters.endDate);
       end.setHours(23, 59, 59, 999);
-      query.createdAt.$lte = end; // Less Than or Equal
+      query.createdAt.$lte = end;
     }
   }
 
-  // 3. "OR" Logic (Smart)
-  // If the user searches for a "Party" (Client/Vendor), it could be in buyerId OR supplierId
   if (filters.partyId) {
     query.$or = [
       { buyerId: filters.partyId },
@@ -150,14 +152,13 @@ export const queryDeliveries = async (filters, page = 1, limit = 20) => {
   const skip = (page - 1) * limit;
 
   const deliveries = await Delivery.find(query)
-    .sort({ createdAt: -1 }) // Newest first
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .populate('locationId', 'name')
     .populate('buyerId', 'name')
     .populate('supplierId', 'name');
 
-  // Optional: Get total count for frontend pagination UI
   const total = await Delivery.countDocuments(query);
 
   return {

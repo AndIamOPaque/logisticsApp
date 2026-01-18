@@ -8,7 +8,7 @@ const locationSchema = new mongoose.Schema(
       trim: true,
       unique: true,
     },
-    type: {
+    type: { 
       type: String,
       enum: ["factory", "warehouse", "office"],
       required: true,
@@ -18,13 +18,25 @@ const locationSchema = new mongoose.Schema(
       required: true,
     },
     contact: {
-      manager: String,
-      phone: String,
-      email: String,
+      manager: { 
+          type: String, 
+          trim: true 
+      },
+      phone: { 
+          type: String, 
+          trim: true,
+          match: [/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format'] 
+      },
+      email: { 
+          type: String, 
+          trim: true,
+          lowercase: true,
+          match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email address']
+      },
     },
     capacity: {
-      maxStockUnits: Number,
-      productionCapacity: Number,
+      maxStockUnits: { type: Number, min: 0 },
+      productionCapacity: { type: Number, min: 0 },
     },
     isActive: {
       type: Boolean,

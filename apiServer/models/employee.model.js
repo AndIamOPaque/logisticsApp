@@ -3,18 +3,20 @@ import mongoose from 'mongoose';
 const employeeSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Name must be a valid string'], // Custom error message
-    minlength: [3, 'Name must be at least 3 characters'], // Custom error message
+    required: [true, 'Name must be a valid string'], 
+    minlength: [3, 'Name must be at least 3 characters'],
     trim: true
   },
+  
   role: {
     type: String,
     required: [true, 'Role is required'],
     enum: {
       values: ['worker', 'manager', 'driver', 'admin'],
-      message: 'Role must be one of: worker, manager, driver, admin' // Custom error
-    }
+      message: 'Role must be one of: worker, manager, driver, admin'
+    } 
   },
+
   wage: {
     amount: {
       type: Number,
@@ -25,38 +27,48 @@ const employeeSchema = new mongoose.Schema({
       type: String,
       required: [true, 'Wage type is required'],
       enum: {
-        values: ['hourly', 'daily', 'weekly', 'monthly'],
-        message: 'Wage type must be one of: hourly, daily, weekly, monthly'
-      }
+        values: ['hourly', 'daily', 'monthly', 'per_trip'],
+        message: 'Wage type must be one of: hourly, daily, monthly, per_trip'
+      },
+      default: 'daily'
     }
   },
+
   contact: {
     phone: {
       type: String,
       required: [true, 'Phone number is required'],
       match: [/^[0-9]{10}$/, 'Phone number must be a valid 10-digit number']
     },
-    email: { // Example of optional field
+    address: {
       type: String,
-      trim: true,
-      lowercase: true,
-      match: [/\S+@\S+\.\S+/, 'Email is invalid'],
-      sparse: true // Allows nulls even if unique
+      trim: true
     }
   }, 
+
   joiningDate: {
     type: Date,
-    required: [true, 'Joining date must be a valid date (YYYY-MM-DD)']
+    required: [true, 'Joining date must be a valid date'],
+    default: Date.now
   }, 
+  
   isActive: {
     type: Boolean,
     default: true,
-    select: false // Hides it from default .find() queries
-}
+  },
+  notes: {
+    type: String, 
+    trim: true
+  },
+  balance: {
+    type: Number,
+    default: 0,
+    index: true
+  }
 }, { timestamps: true });
 
-employeeSchema.index({ name: 1, 'contact.phone': 1 }, { unique: true });
 
+employeeSchema.index({ name: 1, 'contact.phone': 1 }, { unique: true });
 
 const Employee = mongoose.model('Employee', employeeSchema);
 

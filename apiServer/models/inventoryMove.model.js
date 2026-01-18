@@ -26,16 +26,16 @@ const inventoryMoveSchema = new mongoose.Schema({
     enum: ['intake', 'production', 'transfer', 'sale', 'waste', 'correction']
   },
 
-  // The "Event" that caused this move
+  
   referenceId: { 
     type: mongoose.Schema.Types.ObjectId, 
     required: true,
-    refPath: 'referenceModel' // Dynamic reference
+    refPath: 'referenceModel' 
   },
   referenceModel: {
     type: String,
     required: true,
-    enum: ['ProductionOrder', 'Bill', 'Delivery', 'Adjustment'] 
+    enum: ['ProductionOrder', 'Bill', 'Delivery', 'StockAdjustment'] 
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

@@ -1,12 +1,14 @@
-import { Router } from "express";
-import { createLocation, getAllLocations, getLocationById, updateLocation, deleteLocation } from "../controllers/location.controller.js";
+import express from "express";
+import * as LocationController from "../controllers/location.controller.js";
+import { mockAuth } from "../middlewares/auth.middleware.js"; 
 
-const router = Router();
+const router = express.Router();
 
-router.get("/", getAllLocations);
-router.get("/:id", getLocationById);
-router.post("/", createLocation);
-router.put("/:id", updateLocation);
-router.delete("/:id", deleteLocation);
-
+// router.use(protect);
+router.get("/", LocationController.getAllLocations);
+router.get("/:id", LocationController.getLocationById);
+router.post("/", mockAuth, LocationController.createLocation);
+router.patch("/:id", mockAuth, LocationController.updateLocation);
+router.delete("/:id", mockAuth, LocationController.deleteLocation);
+//admin only bnade
 export default router;

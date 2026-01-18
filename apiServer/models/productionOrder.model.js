@@ -6,7 +6,7 @@ const productionOrderSchema = new mongoose.Schema({
     ref: 'Product',
     required: [true, 'Product is required']
   },
-  quantityToProduce: { // <-- Renamed for clarity
+  quantityToProduce: { 
     type: Number,
     required: [true, 'Quantity is required'],
     validate: {
@@ -14,11 +14,11 @@ const productionOrderSchema = new mongoose.Schema({
       message: 'Quantity must be a positive number'
     },
   },
-  actualQuantity: {
+  quantityProduced: {
     type: Number,
     default: 0,
     validate: {
-      validator: (v) => v > 0,
+      validator: (v) => v >= 0,
       message: 'Quantity must be a positive number'
     },
   },
@@ -33,10 +33,6 @@ const productionOrderSchema = new mongoose.Schema({
     required: true,
     enum: ['pending', 'in_progress', 'completed', 'cancelled'], 
     default: 'pending'
-  },
-  producedQuantity: {
-    type: Number,
-    default: 0,
   },
   notes: {
     type: String,
@@ -57,13 +53,9 @@ const productionOrderSchema = new mongoose.Schema({
           message: 'Quantity must be a non-negative number'
         }
       },
-      waste: {
+      variance: {
         type: Number,
         default: 0,
-        validate: {
-          validator: (v) => v >= 0,
-          message: 'Waste must be a non-negative number'
-        },
       }
     }
   ],

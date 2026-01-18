@@ -1,169 +1,126 @@
-import mongoose from "mongoose";
-import Employee from "../models/employee.model.js";
+import * as EmployeeService from "../services/employee.service.js";
+import Employee from "../models/employee.model.js"; // Direct access for simple CRUD is acceptable
 
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+// --- 1. BASIC MANAGEMENT ---
 
-export const getEmployees = async (req, res, next) => {
-  const {name, role} = req.query;
-  const query = {isActive: true};
-  if (name) {
-    const safeName = escapeRegExp(name);
-    query.name = new RegExp('^' + safeName, 'i'); 
-  }
-  if (role) {
-      const validRoles = Employee.schema.path('role').enumValues;
-
-      if (validRoles.includes(role)) {
-        query.role = role;
-      } else {
-        return res.status(400).json({
-          success: false,
-          errors: [`Invalid role specified. Must be one of: ${validRoles.join(', ')}`]
-        });
-      }
-    }
+// GET /employees?role=driver&isActive=true
+export const getEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find(query);
-    res.status(200).json({success: true, data: employees});
-  } catch (error) {
-    console.error("Failed to get employees:", error); 
-    res.status(500).json({
-    success: false,
-    errors: ['Server error. Failed to retrieve data.']               
-      }
-    );
-  };
-}
-export const getEmployeeById = async (req, res, next) => {
-  const { id } = req.params;
-  if(!mongoose.Types.ObjectId.isValid(id)) {
-    return  res.status(400).json({ success: false, errors: ['Invalid Employee ID format'] });
-  }
-  try {
-    const employee = await Employee.findOne({_id: id, isActive: true});
-    if (!employee) {
-      return res.status(404).json({ 
-        success: false, 
-        errors: ['Employee not found'] });
+    const { role, isActive, search } = req.query;
+    const query = {};
+
+    if (role) query.role = role;
+    if (isActive !== undefined) query.isActive = isActive === 'true';
+    
+    // Simple search by name or phone
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { "contact.phone": { $regex: search, $options: 'i' } }
+      ];
     }
-    res.status(200).json({success: true, data: employee});
+
+    // Sort by name A-Z
+    const employees = await Employee.find(query).sort({ name: 1 });
+    
+    return res.status(200).json({ success: true, data: employees });
   } catch (error) {
-    console.error("Failed to get employee by ID:", error);
-    res.status(500).json({
-      success: false,
-      errors: ['Server error. Failed to retrieve data.']
-    });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-
-export const createEmployee = async (req, res, next) => {
-
+// POST /employees
+export const createEmployee = async (req, res) => {
   try {
-    const newEmployee = new Employee(req.body);
-    const savedEmployee = await newEmployee.save();
-    res.status(201).json({ success: true, data: savedEmployee });
-    console.log("Employee created:", savedEmployee);
-
+    // Basic validation is handled by Mongoose Schema
+    const newEmployee = await Employee.create(req.body);
+    return res.status(201).json({ success: true, data: newEmployee });
   } catch (error) {
+    // Handle the "Duplicate Key" error for unique Name+Phone index
     if (error.code === 11000) {
-      
-      const existingEmployee = await Employee.findOne({
-        name: req.body.name,
-        'contact.phone': req.body.phone
-      }).select('+isActive'); 
-
-      // 
-      if (existingEmployee && !existingEmployee.isActive) {
-        return res.status(409).json({
-          success: false,
-          errors: [`Employee exists but is inactive: ${existingEmployee._id} `]
-        });
-      }
-      return res.status(409).json({
-        success: false,
-        errors: ['An active employee with this name and phone number combination already exists.']
-      });
+      return res.status(400).json({ success: false, message: "Employee with this Name and Phone already exists." });
     }
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({ success: false, errors: messages });
-    }
-    console.error(error);
-    res.status(500).json({ success: false, errors: ['Server error'] });
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const updateEmployee = async (req, res, next) => {
+// PATCH /employees/:id (General Info Update)
+export const updateEmployeeInfo = async (req, res) => {
   try {
-    const updatedEmployee = await Employee.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,            
-        runValidators: true   
-      }
-    ).select('+isActive');
+    const { id } = req.params;
+    // Prevent updating 'balance' or 'wage' via this generic route for safety
+    const updates = { ...req.body };
+    delete updates.balance;
+    delete updates.wage; 
 
-    if (!updatedEmployee) {
-      return res.status(404).json({
-        success: false,
-        errors: ["Employee not found"]
-      });
-    }
+    const updatedEmployee = await Employee.findByIdAndUpdate(id, updates, { new: true });
+    
+    if (!updatedEmployee) return res.status(404).json({ success: false, message: "Employee not found" });
 
-    res.json({ success: true, data: updatedEmployee });
-    console.log("Employee updated:", updatedEmployee);
-
+    return res.status(200).json({ success: true, data: updatedEmployee });
   } catch (error) {
-   if (error.code === 11000) {
-      return res.status(409).json({ 
-        success: false,
-        errors: ['An employee with this name and phone number combination already exists.']
-      });
-    }
-
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({ success: false, errors: messages });
-    }
-    console.error(error); 
-    res.status(500).json({ success: false, errors: ['Server error'] });
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const getEmployeeStats = async (req, res, next) => {
-  try {
-    const stats = await Employee.aggregate([
-      {
-        $match: { isActive: true } 
-      },
-      {
-        $group: {
-          _id: '$role',
-          count: { $sum: 1 }, 
-          totalWageAmount: { $sum: '$wage.amount' }, 
-          avgWageAmount: { $avg: '$wage.amount' } 
-        }
-      },
-      {
-        $sort: { _id: 1 } 
-      }
-    ]);
+// --- 2. FINANCIAL & DASHBOARD ---
 
-    if (!stats || stats.length === 0) {
-      return res.status(404).json({ success: false, errors: ['No employee data found to aggregate.'] });
+// GET /employees/:id
+export const getEmployeeProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const profile = await EmployeeService.getEmployeeProfile(id);
+    return res.status(200).json({ success: true, data: profile });
+  } catch (error) {
+    return res.status(404).json({ success: false, message: error.message });
+  }
+};
+
+// PATCH /employees/:id/wage
+export const updateWage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, type } = req.body; // Expect { amount: 500, type: 'daily' }
+
+    const updatedEmployee = await EmployeeService.updateWage(id, { amount, type });
+    return res.status(200).json({ success: true, data: updatedEmployee });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// POST /employees/:id/payout
+// This creates a Bill and clears their balance
+export const payEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminUserId = req.user._id; // Assumes auth middleware populates req.user
+    const { amount, paymentMethod, notes } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid payment amount" });
     }
 
-    res.status(200).json({ success: true, data: stats });
-
-  } catch (error) {
-    console.error("Failed to get employee stats:", error);
-    res.status(500).json({
-      success: false,
-      errors: ['Server error. Failed to retrieve statistics.']
+    const bill = await EmployeeService.processPayroll(adminUserId, {
+      employeeId: id,
+      amount,
+      paymentMethod,
+      notes
     });
+
+    return res.status(201).json({ success: true, message: "Payment processed successfully", data: bill });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// GET /employees/:id/report
+export const getLifecycleReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const stats = await EmployeeService.getEmployeeLifecycleReport(id);
+    return res.status(200).json({ success: true, data: stats });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
