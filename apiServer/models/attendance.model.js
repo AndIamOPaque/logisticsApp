@@ -6,7 +6,6 @@ const attendanceSchema = new mongoose.Schema({
     ref: "Employee",
     required: true
   },
-  // This 'date' is for querying. It should be normalized to midnight.
   date: {
     type: Date,
     required: true
@@ -17,6 +16,10 @@ const attendanceSchema = new mongoose.Schema({
   outTime: {
     type: Date
   },
+  payableAmount: {
+    type: Number,
+    default: 0
+  },
   status: {
     type: String,
     enum: ["present", "absent", "leave", "half-day"],
@@ -24,8 +27,6 @@ const attendanceSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  // --- THIS IS THE KEY ---
-  // Ensure virtuals are included when you send the doc as JSON
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });

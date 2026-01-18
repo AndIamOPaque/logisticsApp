@@ -1,0 +1,22 @@
+MISSING->>>>>>>>>>>
+for deliveryies from one warehouse to other logic needs to be implemented so on completion two inventory moves happen  maybe instead of directioin we can see if it is from location to location or party to location or location to party	
+
+MEDIUM PRIORITY->>>
+implement low stock alert for raw materials
+add flag when more product is trying to be made at a location than the raw material issued. dont stop. just flag for review: iske liiye toh consumed quanity completion se pehle post pe hi calculate karni hogi
+check location deletion with stock exists condition
+check delivery routes
+
+LOW PRIORITY->>>>>
+check payroll features
+add product deletion and reactivation logic(if reactivated or added again then reactivate automatically)
+some places where i have multiple requests to the backend i am not using session, add this
+shift the variance report to a frontend feature or remove it from the notes. or maybe not. whatever fits well.
+fix raw material controllers
+refactor in some places i have writeen item where it should be itemId
+check get functions for production.controller. filhaal mein bas yuhi likh de rha
+improve product controllers. add user and auth in it. make analysis routes there if any needed
+
+
+notes:
+use variance as flags more material than there should have been left same can be used to flag high 

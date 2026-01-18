@@ -36,12 +36,6 @@ const rawMaterialSchema = new mongoose.Schema(
         message: 'Cost must be a positive number'
       }
     },
-    quantityOnHand: {
-      type: Number,
-      required: true,
-      default: 0,
-      min: [0, 'Quantity cannot be negative']
-    },
     reorderLevel: {
       type: Number,
       default: 0,

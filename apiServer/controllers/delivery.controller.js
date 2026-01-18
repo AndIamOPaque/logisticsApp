@@ -1,5 +1,5 @@
 import Delivery from "../models/delivery.model.js";
-import { createDelivery, updateDeliveryStatus, queryDeliveries } from "../services/delivery.services.js";
+import { createDelivery, updateDeliveryStatus, queryDeliveries } from "../services/delivery.service.js";
 
 export const createNewDelivery = async (req, res, next) => {
   try {

@@ -1,5 +1,6 @@
 import RawMaterial from "../models/rawMaterial.model.js";
 import mongoose from "mongoose";
+import { correctStock, getStockLevels } from "../services/inventory.service.js";
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -8,7 +9,11 @@ function escapeRegExp(string) {
 export const getRawMaterials = async (req, res, next) => {
   try {
     const { name, category } = req.query;
-    const query = {name: null}; 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const query = {};
 
     if (name) {
       const safeName = escapeRegExp(name);
@@ -16,6 +21,7 @@ export const getRawMaterials = async (req, res, next) => {
     }
 
     if (category) {
+      // Validate category against schema enum to prevent DB errors
       const validCategories = RawMaterial.schema.path('category').enumValues;
       if (validCategories.includes(category)) {
         query.category = category;
@@ -27,15 +33,26 @@ export const getRawMaterials = async (req, res, next) => {
       }
     }
 
-    const materials = await RawMaterial.find(query);
-    res.status(200).json({ success: true, data: materials });
+    const materials = await RawMaterial.find(query)
+      .populate("createdBy", "name email") 
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await RawMaterial.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      data: materials,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
 
   } catch (error) {
-    console.error("Failed to get raw materials:", error);
-    res.status(500).json({
-      success: false,
-      errors: ['Server error. Failed to retrieve data.']
-    });
+    next(error);
   }
 };
 
@@ -47,7 +64,9 @@ export const getRawMaterialById = async (req, res, next) => {
   }
 
   try {
-    const material = await RawMaterial.findOne({ _id: id, isActive: true });
+    const material = await RawMaterial.findOne({ _id: id })
+      .populate("createdBy", "name")
+      .lean();
 
     if (!material) {
       return res.status(404).json({
@@ -59,29 +78,28 @@ export const getRawMaterialById = async (req, res, next) => {
     res.status(200).json({ success: true, data: material });
 
   } catch (error) {
-    console.error("Failed to get raw material by ID:", error);
-    res.status(500).json({
-      success: false,
-      errors: ['Server error. Failed to retrieve data.']
-    });
+    next(error);
   }
 };
 
 export const createRawMaterial = async (req, res, next) => {
-  delete req.body.quantityOnHand;
 
   try {
-    // shourya bhai 'createdBy' is added by auth middleware req.user.id
-    // newMaterial.createdBy = req.user.id; 
-    
-    const newMaterial = new RawMaterial(req.body);
+    const materialData = {
+      ...req.body,
+      createdBy: req.user._id,
+      updatedBy: req.user._id
+    };
+
+    const newMaterial = new RawMaterial(materialData);
     const savedMaterial = await newMaterial.save();
 
     res.status(201).json({ success: true, data: savedMaterial });
 
   } catch (error) {
+    // Handle Duplicate Key Error (E.g. unique name/code)
     if (error.code === 11000) {
-      const conflictingField = Object.keys(error.keyPattern)[0]; 
+      const conflictingField = Object.keys(error.keyPattern)[0];
       
       const existing = await RawMaterial.findOne({
         [conflictingField]: req.body[conflictingField]
@@ -98,29 +116,22 @@ export const createRawMaterial = async (req, res, next) => {
         errors: [`A raw material with this ${conflictingField} already exists.`]
       });
     }
-
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({ success: false, errors: messages });
-    }
-
-    console.error(error);
-    res.status(500).json({ success: false, errors: ['Server error'] });
+    next(error);
   }
 };
 
-
 export const updateRawMaterial = async (req, res, next) => {
-  delete req.body.quantityOnHand;
-  delete req.body.createdBy;
-
-  //'updatedBy' auth middleware se daal do please 
-  // req.body.updatedBy = req.user.id;
+  delete req.body.createdBy; 
 
   try {
+    const updateData = {
+      ...req.body,
+      updatedBy: req.user._id
+    };
+
     const material = await RawMaterial.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true
@@ -144,11 +155,36 @@ export const updateRawMaterial = async (req, res, next) => {
         errors: [`A raw material with this ${conflictingField} already exists.`]
       });
     }
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({ success: false, errors: messages });
-    }
-    console.error(error);
-    res.status(500).json({ success: false, errors: ['Server error'] });
+    next(error);
   }
 };
+
+export const correctRawMaterialStock = async (req, res, next) => {
+  try {
+    const safeUpdate = {
+      ...req.body,
+      itemModel: "RawMaterial",
+      item: req.params.id,
+      createdBy: req.user_id,
+    }
+    const materialId = req.params.id;
+    const material = await RawMaterial.findById(materialId);
+    if (!material) {
+      return res.status(404).json({ success:false, message: "Raw material not found" });
+    }
+    await correctStock(safeUpdate, req.user._id);
+
+    res.json({ success: true, message: "Stock corrected successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRawMaterialStockLevels = async (req, res, next) => {
+  try{
+  const stockByLocation = await getStockLevels('RawMaterial', req.params.id);
+  res.status(200).json({success:true, data: stockByLocation});
+  }catch(error){
+    next(error);
+  }
+}

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Schema } from "mongoose";
 
 const deliverySchema = new mongoose.Schema(
   {
@@ -36,8 +37,17 @@ const deliverySchema = new mongoose.Schema(
     ],
 
     vehicleId: { type: Schema.Types.ObjectId, ref: "Asset" },
-    driverId: { type: Schema.Types.ObjectId, ref: "Staff" },
-
+    driverId: { type: Schema.Types.ObjectId, ref: "Employee" },
+    tripCost: { 
+      type: Number, 
+      default: 0,
+      min: 0 
+    },
+  
+    isDriverPaid: {
+      type: Boolean,
+      default: false
+    },
     departureTime: { type: Date },
     arrivalTime: { type: Date },
 
