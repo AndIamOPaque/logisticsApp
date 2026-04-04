@@ -17,8 +17,9 @@ export const logProductionOutput = async (orderId, quantityProduced, userId) => 
   try {
     const order = await ProductionOrder.findById(orderId).session(session);
     if (!order || ['completed', 'cancelled'].includes(order.status)) {
-        throw new Error("Invalid or closed order.");
-    }
+    const error = new Error("Invalid or closed order.");
+        error.statusCode = 400; 
+        throw error;    }
 
     await moveInventory({
         item: order.product,

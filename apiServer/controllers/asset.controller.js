@@ -26,7 +26,7 @@ export const getAssets = async (req, res, next) => {
 
     const result = await assetService.getAssets(filters, page, limit);
     
-    res.json({ success: true, ...result });
+    res.json({ success: true, data: result.assets });
   } catch (err) {
     next(err);
   }
