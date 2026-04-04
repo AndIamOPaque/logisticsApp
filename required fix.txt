@@ -6,6 +6,7 @@ implement low stock alert for raw materials
 add flag when more product is trying to be made at a location than the raw material issued. dont stop. just flag for review: iske liiye toh consumed quanity completion se pehle post pe hi calculate karni hogi
 check location deletion with stock exists condition
 check delivery routes
+error handling improve karni hai
 
 LOW PRIORITY->>>>>
 check payroll features
@@ -16,6 +17,8 @@ fix raw material controllers
 refactor in some places i have writeen item where it should be itemId
 check get functions for production.controller. filhaal mein bas yuhi likh de rha
 improve product controllers. add user and auth in it. make analysis routes there if any needed
+change controller catch block from next(err) to return res.status(400).json({ success: false, message: error.message });
+
 
 
 notes:

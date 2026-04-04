@@ -85,15 +85,18 @@ export const correctStock = async (adjustmentData, userId) => {
 export const getStockLevels = async (itemModel, itemId) => {
   const model = mongoose.model(itemModel);
   const itemExist = await model.findById(itemId);
-  if(!itemExist){
+  
+  if (!itemExist) {
     throw new Error(`${itemModel} not found`);
-  } 
-  const stockEntries = await Stock.find({ itemModel, item: itemId });
-  const stockByLocation = {};
-  stockEntries.forEach(entry => {
-    stockByLocation[entry.location] = entry.quantity;
-  });
-  return stockByLocation;
+  }
+  const stockEntries = await Stock.find({ itemModel, item: itemId })
+    .populate('location', 'name') 
+    .lean();
+  return stockEntries.map(entry => ({
+    locationId: entry.location._id,
+    locationName: entry.location.name || 'Unknown Location',
+    quantity: entry.quantity
+  }));
 };
 
 export const getInventoryMovements = async (itemModel, itemId, filters = {}) => {

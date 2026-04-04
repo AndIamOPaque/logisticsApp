@@ -41,7 +41,7 @@ export const markStatus = async (req, res, next) => {
 };
 export const updateRecord = async (req, res, next) => {
   try {
-    const { id } = req.params; // The Attendance Record ID
+    const { id } = req.params; 
     const { newInTime, newOutTime, newStatus } = req.body;
 
     const updatedRecord = await attendanceService.updateAttendanceRecord(id, {

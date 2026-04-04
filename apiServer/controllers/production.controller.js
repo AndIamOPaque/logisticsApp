@@ -63,7 +63,7 @@ export const recordMaterialUsage = async (req, res, next) => {
     const orderId = req.params.id;
     const { materialId, quantityUsed } = req.body;
     const updatedOrder = await logMaterialUsage(orderId, materialId, quantityUsed, userId);
-    res.json(updatedOrder);
+    res.status(200).json(updatedOrder);
   } catch (err) {
     next(err);
   }
@@ -75,7 +75,7 @@ export const recordProductionOutput = async (req, res, next) => {
         const orderId = req.params.id;
         const { quantityProduced } = req.body;
         const updatedOrder = await logProductionOutput(orderId, quantityProduced, userId);
-        res.json(updatedOrder);
+        res.status(200).json(updatedOrder);
     } catch (err) {
         next(err);
     }
@@ -87,7 +87,7 @@ export const returnUnusedMaterials = async (req, res, next) => {
     const orderId = req.params.id;
     const { materialId, quantityReturned } = req.body;
     const updatedOrder = await returnUnusedMaterial(orderId, materialId, quantityReturned, userId);
-    res.json({success:true, data:updatedOrder});
+    res.status(200).json(updatedOrder);
   } catch (err) {
     next(err);
   }
@@ -99,7 +99,7 @@ export const changeProductionOrderStatus = async (req, res, next) => {
     const orderId = req.params.id;
     const { status } = req.body;
     const updatedOrder = await updateOrderStatus(orderId, status, userId);
-    res.json(updatedOrder);
+    res.status(200).json(updatedOrder);
   } catch (err) {
     next(err);
   }

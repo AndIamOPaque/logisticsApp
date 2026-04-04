@@ -16,7 +16,7 @@ export const getProducts = async (req, res, next) => {
 
     const total = await Product.countDocuments();
 
-    res.json({
+    res.status(200).json({
       data: products,
       pagination: {
         total,
@@ -39,7 +39,7 @@ export const getProductById = async (req, res, next) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    res.json(product);
+    res.json({success:true, data:product});
   } catch (err) {
     next(err);
   }
@@ -81,9 +81,9 @@ export const updateProduct = async (req, res, next) => {
     );
 
     if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
-    res.json(updatedProduct);
+    res.json({success:true, data: updatedProduct});
   } catch (err) {
     next(err);
   }
@@ -94,9 +94,9 @@ export const deleteProduct = async (req, res, next) => {
     const deletedProduct = await Product.findByIdAndUpdate(req.params.id, {isActive : false});
     
     if (!deletedProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ success:false, message: "Product not found" });
     }
-    res.json({ message: "Product deleted successfully" });
+    res.json({ success:true, message: "Product deleted successfully" });
   } catch (err) {
     next(err);
   }
