@@ -14,11 +14,15 @@ import attendanceRoutes from './routes/attendance.route.js';
 import userRoutes from './routes/user.route.js';
 import deliveryRoutes from './routes/delivery.route.js';
 import productionRoutes from './routes/production.route.js'
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const swaggerDocument = JSON.parse(
+  fs.readFileSync('./swagger-output.json', 'utf-8')
+);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,7 +33,7 @@ mongoose.connect(process.env.MONGO_URI, {
 })
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.error("MongoDB connection error:", err));
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/user', userRoutes);
 app.use('/api/asset', assetRoutes);
 app.use('/api/delivery', deliveryRoutes);

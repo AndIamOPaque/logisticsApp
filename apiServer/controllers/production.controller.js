@@ -1,5 +1,5 @@
 import ProductionOrder from "../models/productionOrder.model.js";
-import {createProductionOrder ,logMaterialUsage, logProductionOutput, returnUnusedMaterial, updateOrderStatus } from "../services/production.service.js";
+import { createProductionOrder, logMaterialUsage, logProductionOutput, returnUnusedMaterial, updateOrderStatus, getProductionInventoryMoves } from "../services/production.service.js"
 
 export const createNewProductionOrder = async (req, res, next) => {
   try {
@@ -100,6 +100,15 @@ export const changeProductionOrderStatus = async (req, res, next) => {
     const { status } = req.body;
     const updatedOrder = await updateOrderStatus(orderId, status, userId);
     res.status(200).json(updatedOrder);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getProductionLogs = async (req, res, next) => {
+  try {
+    const moves = await getProductionInventoryMoves(req.params.id);
+    res.status(200).json({ success: true, data: moves });
   } catch (err) {
     next(err);
   }

@@ -80,14 +80,19 @@ export default function RootLayout() {
           />
         <Tabs.Screen
           name="product"
-          options={{
-            title: 'Products',
-            tabBarIcon:({focused,size }) => <Icon 
-              as={Settings} 
-              size={size} 
-              className={focused ? 'text-primary-foreground' : 'text-muted-foreground'} 
-            />,
-          }}
+          options={{ href: null }} // moved to sidebar
+          />
+        <Tabs.Screen
+          name="location"
+          options={{ href: null }} // sidebar only
+          />
+        <Tabs.Screen
+          name="asset"
+          options={{ href: null }} // sidebar only
+          />
+        <Tabs.Screen
+          name="party"
+          options={{ href: null }} // sidebar only
           />
       </Tabs>
 

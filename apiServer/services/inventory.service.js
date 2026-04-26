@@ -127,3 +127,18 @@ export const recalculateTotalStock = async (itemModel, itemId) => {
     console.log(`updated stock at ${entry._id} with quantity ${entry.total}`);
   }
 };
+
+/**
+ * Fetch all inventory moves linked to a specific reference document
+ * e.g. all moves for a ProductionOrder, or a Delivery
+ * Input: referenceModel (string enum), referenceId (ObjectId)
+ */
+export const getMovesForReference = async (referenceModel, referenceId) => {
+  const moves = await InventoryMove.find({ referenceModel, referenceId })
+    .populate('item', 'name code')
+    .populate('location', 'name')
+    .populate('createdBy', 'name')
+    .sort({ createdAt: -1 })
+    .lean();
+  return moves;
+};
