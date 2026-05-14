@@ -1,5 +1,5 @@
 import Product from "../models/product.model.js";
-import { correctStock, getStockLevels } from "../services/inventory.service.js";
+import { correctStock, getStockLevels, getInventoryMovements } from "../services/inventory.service.js";
 
 export const getProducts = async (req, res, next) => {
   try {
@@ -128,6 +128,15 @@ export const getProductStockLevels = async (req, res, next) =>{
     const stockByLocation = await getStockLevels('Product', req.params.id);
     res.status(200).json({success:true, data: stockByLocation});
   }catch(error){
+    next(error);
+  }
+};
+
+export const getProductLogs = async (req, res, next) => {
+  try {
+    const logs = await getInventoryMovements('Product', req.params.id);
+    res.status(200).json({ success: true, data: logs });
+  } catch (error) {
     next(error);
   }
 };

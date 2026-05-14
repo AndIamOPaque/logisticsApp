@@ -27,7 +27,7 @@ export const changeDeliveryStatus = async (req, res, next) => {
 export const getDeliveryById = async (req, res, next) => {
   try {
     const delivery = await Delivery.findById(req.params.id)
-        .populate("buyerId supplierId locationId vehicleId driverId billIds createdBy updatedBy");
+        .populate("buyerId supplierId locationId toLocationId vehicleId driverId billIds createdBy updatedBy");
     if (!delivery) {
       return res.status(404).json({ message: "Delivery not found" });
     }

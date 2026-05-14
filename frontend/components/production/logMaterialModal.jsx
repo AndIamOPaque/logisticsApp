@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ModalToast } from '@/components/ui/modalToast';
 import { View, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { XIcon } from 'lucide-react-native';
@@ -122,6 +123,7 @@ const LogMaterialModal = ({ orderId, productId, visible, onClose }) => {
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+    <ModalToast />
     </Modal>
   );
 };

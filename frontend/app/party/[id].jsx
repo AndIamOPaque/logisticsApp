@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ModalToast } from '@/components/ui/modalToast';
 import {
   View,
   ScrollView,
@@ -237,6 +238,7 @@ function EditModal({ party, visible, onClose }) {
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+      <ModalToast />
     </Modal>
   );
 }
@@ -278,14 +280,18 @@ export default function PartyDetailScreen() {
 
   if (isPending)
     return (
-      <SafeAreaView className="bg-background flex-1 items-center justify-center" edges={['top']}>
+      <SafeAreaView
+        style={{ flex: 1 }}
+        className="bg-background items-center justify-center"
+        edges={['top']}>
         <Text className="text-muted-foreground">Loading…</Text>
       </SafeAreaView>
     );
   if (isError || !party)
     return (
       <SafeAreaView
-        className="bg-background flex-1 items-center justify-center gap-y-3"
+        style={{ flex: 1 }}
+        className="bg-background items-center justify-center gap-y-3"
         edges={['top']}>
         <Text className="text-red-500">Could not load party.</Text>
         <Button variant="outline" size="sm" onPress={() => router.back()}>
@@ -295,7 +301,7 @@ export default function PartyDetailScreen() {
     );
 
   return (
-    <SafeAreaView className="bg-background flex-1" edges={['top']}>
+    <SafeAreaView style={{ flex: 1 }} className="bg-background" edges={['top']}>
       {/* Header */}
       <View className="border-border bg-card flex-row items-center justify-between border-b px-4 pt-4 pb-3">
         <Button variant="ghost" size="icon" onPress={() => router.back()} className="rounded-xl">

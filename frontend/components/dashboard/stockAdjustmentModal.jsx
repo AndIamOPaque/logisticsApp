@@ -1,4 +1,5 @@
 // components/dashboard/StockAdjustmentModal.jsx
+import { ModalToast } from '@/components/ui/modalToast';
 import * as React from 'react';
 import {
   View,
@@ -308,6 +309,7 @@ export function StockAdjustmentModal({
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
+    <ModalToast />
     </Modal>
   );
 }

@@ -1,7 +1,6 @@
 import '@/global.css';
 import { TabBar } from '@/components/tabBar'; 
-import { LayoutGrid, List, Settings
- } from 'lucide-react-native'; 
+import { LayoutDashboardIcon, Truck, FactoryIcon, CalendarClock } from 'lucide-react-native'; 
 import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
@@ -61,7 +60,7 @@ export default function RootLayout() {
           options={{
             title: 'Home',
             tabBarIcon: ({focused, size }) => <Icon 
-              as={LayoutGrid} 
+              as={LayoutDashboardIcon} 
               size={size} 
               className={focused ? 'text-primary-foreground' : 'text-muted-foreground'} 
             />,
@@ -72,7 +71,18 @@ export default function RootLayout() {
           options={{
             title: 'Production',
             tabBarIcon: ({focused,size }) => <Icon 
-              as={Settings} 
+              as={FactoryIcon} 
+              size={size} 
+              className={focused ? 'text-primary-foreground' : 'text-muted-foreground'} 
+            />,
+          }}
+          />
+        <Tabs.Screen
+          name="delivery"
+          options={{
+            title: 'Delivery',
+            tabBarIcon: ({focused,size }) => <Icon 
+              as={Truck} 
               size={size} 
               className={focused ? 'text-primary-foreground' : 'text-muted-foreground'} 
             />,
@@ -93,6 +103,17 @@ export default function RootLayout() {
         <Tabs.Screen
           name="party"
           options={{ href: null }} // sidebar only
+          />
+        <Tabs.Screen
+          name="employee"
+          options={{ href: null }} // sidebar only
+          />
+        <Tabs.Screen
+          name="attendance"
+          options={{
+            title: 'Attendance',
+            tabBarIcon: ({focused, size}) => <Icon as={CalendarClock} size={size} className={focused ? 'text-primary-foreground' : 'text-muted-foreground'} />
+          }}
           />
       </Tabs>
 

@@ -5,7 +5,7 @@ export const fetchProductions = async (queryParams = {}) => {
   if (response.status !== 200) {
     throw new Error(response.data.message || 'Could not load Productions');
   }
-  return response.data.data;
+  return response.data; // { data: [...], pagination: { total, page, pages } }
 };
 
 export const fetchProductionById = async (id) => {

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ModalToast } from '@/components/ui/modalToast';
 import {
   View,
   ScrollView,
@@ -26,6 +27,8 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { fetchLocations, createLocation } from '@/api/location';
+
+import { Sidebar } from '@/components/dashboard/sidebar';
 
 // ─── Type config ─────────────────────────────────────────────────────────────
 const TYPE_CONFIG = {
@@ -219,6 +222,7 @@ function CreateLocationModal({ visible, onClose }) {
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+    <ModalToast />
     </Modal>
   );
 }
@@ -227,6 +231,7 @@ function CreateLocationModal({ visible, onClose }) {
 export default function LocationListScreen() {
   const router = useRouter();
   const [createVisible, setCreateVisible] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const tabBarHeight = useBottomTabBarHeight();
 
   const { data, isPending, isError, refetch } = useQuery({
@@ -240,9 +245,22 @@ export default function LocationListScreen() {
     <SafeAreaView className="bg-background" style={{ flex: 1 }} edges={['top']}>
       {/* Header */}
       <View className="border-border bg-card flex-row items-center justify-between border-b px-4 pt-4 pb-3">
-        <View className="flex-row items-center gap-x-2">
-          <Icon as={MapPinIcon} className="text-foreground size-5" />
-          <Text className="text-foreground text-lg font-bold">Locations</Text>
+        <View className="flex-row items-center gap-x-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onPress={() => setSidebarOpen(true)}
+            className="rounded-lg h-8 w-8">
+            <View className="gap-y-1">
+              <View className="bg-foreground h-0.5 w-5 rounded-full" />
+              <View className="bg-foreground h-0.5 w-4 rounded-full" />
+              <View className="bg-foreground h-0.5 w-5 rounded-full" />
+            </View>
+          </Button>
+          <View className="flex-row items-center gap-x-2">
+            <Icon as={MapPinIcon} className="text-foreground size-5" />
+            <Text className="text-foreground text-lg font-bold">Locations</Text>
+          </View>
         </View>
         <Button
           size="sm"
@@ -295,6 +313,7 @@ export default function LocationListScreen() {
       </ScrollView>
 
       <CreateLocationModal visible={createVisible} onClose={() => setCreateVisible(false)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </SafeAreaView>
   );
 }

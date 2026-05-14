@@ -1,4 +1,5 @@
 import { View, Modal, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ModalToast } from '@/components/ui/modalToast';
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Text } from '@/components/ui/text';
@@ -104,6 +105,7 @@ const ProductionOutputModal = ({ order, visible, onClose }) => {
 
         </View>
       </View>
+    <ModalToast />
     </Modal>
   );
 };

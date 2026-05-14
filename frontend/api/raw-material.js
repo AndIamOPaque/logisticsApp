@@ -29,3 +29,13 @@ export const fetchRawMaterialStockLevels = async (id) => {
   const response = await api.get(`/raw-material/${id}/stock-level`);
   return response.data.data;
 };
+
+export const fetchRawMaterialLogs = async (id) => {
+  const response = await api.get(`/raw-material/${id}/logs`);
+  return response.data.data;
+};
+
+export const fetchProductsUsingMaterial = async (id) => {
+  const response = await api.get(`/raw-material/${id}/used-in-products`);
+  return response.data.data;
+};

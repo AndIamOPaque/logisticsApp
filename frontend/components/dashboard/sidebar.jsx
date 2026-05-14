@@ -7,6 +7,7 @@ import {
   TouchableWithoutFeedback,
   Animated,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import { Link } from 'expo-router';
 import { Text } from '@/components/ui/text';
@@ -23,6 +24,9 @@ import {
   MoonStarIcon,
   SunIcon,
   XIcon,
+  PackageIcon,
+  CalendarClockIcon,
+  ReceiptIcon
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
@@ -35,6 +39,10 @@ const NAV_ITEMS = [
   { label: 'Asset',         href: '/asset',         icon: WrenchIcon        },
   { label: 'Party',         href: '/party',         icon: UsersIcon         },
   { label: 'Raw Materials', href: '/raw-material',  icon: FlaskConicalIcon  },
+  { label: 'Product',       href: '/product',       icon: PackageIcon       },
+  { label: 'Employees',     href: '/employee',      icon: UsersIcon         },
+  { label: 'Attendance',    href: '/attendance',    icon: CalendarClockIcon },
+  { label: 'Bills',         href: '/bill',          icon: ReceiptIcon       },
 ];
 
 const THEME_ICONS = { light: SunIcon, dark: MoonStarIcon };
@@ -143,7 +151,10 @@ export function Sidebar({ isOpen, onClose }) {
         </View>
 
         {/* Nav Items */}
-        <View className="flex-1 gap-y-0.5 px-3 py-4">
+        <ScrollView 
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 16, gap: 2 }}>
           <Text className="text-muted-foreground mb-2 px-2 text-xs font-bold tracking-widest uppercase">
             Navigation
           </Text>
@@ -174,7 +185,7 @@ export function Sidebar({ isOpen, onClose }) {
               )}
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
 
         {/* Bottom: Theme Toggle */}
         <View className="border-border border-t px-3 pt-3 pb-10">

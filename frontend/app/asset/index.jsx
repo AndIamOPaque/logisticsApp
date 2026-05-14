@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ModalToast } from '@/components/ui/modalToast';
 import {
   View,
   ScrollView,
@@ -27,6 +28,8 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { ThemedSelect } from '@/components/ui/themed-select';
+import { ErrorMessage } from '@/components/ui/errorMessage';
+import { Sidebar } from '@/components/dashboard/sidebar';
 import { fetchAssets, createAsset } from '@/api/asset';
 import { fetchLocations } from '@/api/location';
 
@@ -52,13 +55,14 @@ function AssetCard({ asset, onPress }) {
   const cat = CATEGORY_CONFIG[asset.category] ?? CATEGORY_CONFIG.machinery;
   const sts = STATUS_CONFIG[asset.status] ?? STATUS_CONFIG.active;
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      className="bg-card border-border flex-row items-center gap-x-3 rounded-2xl border px-4 py-4">
-      <View className={`rounded-xl p-2.5 ${cat.bg}`}>
-        <Icon as={cat.icon} className={`size-5 ${cat.color}`} />
-      </View>
+    <View className="bg-card border-b border-border">
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        className="flex-row items-center gap-x-3 px-4 py-4">
+        <View className={`rounded-xl p-2.5 ${cat.bg}`}>
+          <Icon as={cat.icon} className={`size-5 ${cat.color}`} />
+        </View>
       <View className="flex-1">
         <Text className="text-foreground text-sm font-semibold" numberOfLines={1}>
           {asset.name}
@@ -76,7 +80,8 @@ function AssetCard({ asset, onPress }) {
         </View>
       </View>
       <Icon as={ChevronRightIcon} className="text-muted-foreground size-4" />
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -236,6 +241,7 @@ function CreateAssetModal({ visible, onClose }) {
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+    <ModalToast />
     </Modal>
   );
 }
@@ -244,6 +250,7 @@ function CreateAssetModal({ visible, onClose }) {
 export default function AssetListScreen() {
   const router = useRouter();
   const [createVisible, setCreateVisible] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [filterCategory, setFilterCategory] = React.useState(null);
   const tabBarHeight = useBottomTabBarHeight();
 
@@ -258,9 +265,22 @@ export default function AssetListScreen() {
     <SafeAreaView className="bg-background" style={{ flex: 1 }} edges={['top']}>
       {/* Header */}
       <View className="border-border bg-card flex-row items-center justify-between border-b px-4 pt-4 pb-3">
-        <View className="flex-row items-center gap-x-2">
-          <Icon as={WrenchIcon} className="text-foreground size-5" />
-          <Text className="text-foreground text-lg font-bold">Assets</Text>
+        <View className="flex-row items-center gap-x-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onPress={() => setSidebarOpen(true)}
+            className="rounded-lg h-8 w-8">
+            <View className="gap-y-1">
+              <View className="bg-foreground h-0.5 w-5 rounded-full" />
+              <View className="bg-foreground h-0.5 w-4 rounded-full" />
+              <View className="bg-foreground h-0.5 w-5 rounded-full" />
+            </View>
+          </Button>
+          <View className="flex-row items-center gap-x-2">
+            <Icon as={WrenchIcon} className="text-foreground size-5" />
+            <Text className="text-foreground text-lg font-bold">Assets</Text>
+          </View>
         </View>
         <Button
           size="sm"
@@ -272,16 +292,16 @@ export default function AssetListScreen() {
       </View>
 
       {/* Category filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="border-border bg-card border-b"
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingVertical: 10,
-          gap: 8,
-          alignItems: 'center',
-        }}>
+      <View style={{ height: 46 }} className="border-border bg-card border-b">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            gap: 8,
+            alignItems: 'center',
+            height: 46,
+          }}>
         <TouchableOpacity
           onPress={() => setFilterCategory(null)}
           className={`rounded-full border px-3 py-1.5 ${!filterCategory ? 'bg-primary border-primary' : 'border-border bg-transparent'}`}>
@@ -309,31 +329,23 @@ export default function AssetListScreen() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {/* List */}
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
+          paddingTop: 0,
           paddingBottom: tabBarHeight + 58,
-          gap: 12,
         }}>
         {isPending && (
           <View className="items-center py-16">
             <Text className="text-muted-foreground text-sm">Loading assets…</Text>
           </View>
         )}
-        {isError && (
-          <View className="items-center gap-y-3 py-16">
-            <Text className="text-sm text-red-500">Could not load assets.</Text>
-            <Button variant="outline" size="sm" onPress={refetch}>
-              <Text>Retry</Text>
-            </Button>
-          </View>
-        )}
+        {isError && <ErrorMessage error={{message: 'Could not load assets.'}} onRetry={refetch} />}
         {!isPending && !isError && assets.length === 0 && (
           <View className="items-center gap-y-3 py-16">
             <View className="bg-muted rounded-full p-4">
@@ -355,6 +367,7 @@ export default function AssetListScreen() {
       </ScrollView>
 
       <CreateAssetModal visible={createVisible} onClose={() => setCreateVisible(false)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </SafeAreaView>
   );
 }

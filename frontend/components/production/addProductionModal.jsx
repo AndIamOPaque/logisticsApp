@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ModalToast } from '@/components/ui/modalToast';
 import { View, Modal, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { XIcon, PackageIcon, MapPinIcon, StickyNoteIcon } from 'lucide-react-native';
@@ -139,6 +140,7 @@ const AddProductionModal = ({ visible, onClose }) => {
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+    <ModalToast />
     </Modal>
   );
 };

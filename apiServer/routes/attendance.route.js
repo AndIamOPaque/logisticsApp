@@ -9,7 +9,7 @@ const router = express.Router();
 // --- DAILY ACTIONS (Workers/Managers) ---
 router.post("/clock-in", AttendanceController.clockIn);
 router.post("/clock-out", AttendanceController.clockOut);
-
+router.post("/daily", AttendanceController.markDailyAttendance)
 // --- MANAGEMENT & CORRECTIONS ---
 // Mark status manually (e.g. absent/leave) without clocking in
 router.post("/status", AttendanceController.markStatus); 

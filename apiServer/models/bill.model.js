@@ -80,6 +80,10 @@ const billSchema = new mongoose.Schema(
       index: true,
     },
     dueDate: Date,
+    linkedDelivery: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Delivery'
+    },
     notes: String, 
     attachments: [
       {

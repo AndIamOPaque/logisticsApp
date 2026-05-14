@@ -118,10 +118,20 @@ export const updateExistingBill = async (billId, billData) => {
     if (billData.dueDate) bill.dueDate = billData.dueDate;
     if (billData.notes) bill.notes = billData.notes;
     if (billData.status) bill.status = billData.status;
+    if (billData.linkedDelivery !== undefined) bill.linkedDelivery = billData.linkedDelivery;
     
     bill.updatedBy = billData.updatedBy;
 
     await bill.save();
+    return bill;
+};
+
+export const getBillById = async (billId) => {
+    const bill = await Bill.findById(billId)
+        .populate('from.party', 'name')
+        .populate('to.party', 'name')
+        .populate('linkedDelivery', '_id status direction')
+        .lean();
     return bill;
 };
 

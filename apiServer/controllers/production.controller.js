@@ -18,7 +18,21 @@ export const getProductionOrder = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const order = await ProductionOrder.find()
+    // Build query with optional filters
+    const query = {};
+    if (req.query.status) query.status = req.query.status;
+    if (req.query.startDate || req.query.endDate) {
+      query.createdAt = {};
+      if (req.query.startDate) query.createdAt.$gte = new Date(req.query.startDate);
+      if (req.query.endDate) {
+        const end = new Date(req.query.endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    const orders = await ProductionOrder.find(query)
+      .sort({ createdAt: -1 })
       .populate("product", "name code costPerUnit salesPrice")
       .populate("location", "name")
       .populate("createdBy", "name email")
@@ -26,10 +40,10 @@ export const getProductionOrder = async (req, res, next) => {
       .limit(limit)
       .lean();
 
-    const total = await ProductionOrder.countDocuments();
+    const total = await ProductionOrder.countDocuments(query);
 
     res.json({
-      data: order,
+      data: orders,
       pagination: {
         total,
         page,
