@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "minimal",
-    "slug": "minimal",
+    "name": "Logistics App",
+    "slug": "logistics-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "minimal",
+    "scheme": "logisticsapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
