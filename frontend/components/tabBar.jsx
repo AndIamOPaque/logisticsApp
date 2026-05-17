@@ -37,7 +37,7 @@ export function TabBar({ state, descriptors, navigation }) {
                 target: route.key,
             });
         };
-    if(['production', 'product', 'index'].includes(route.name)) 
+    if(['production', 'index', 'delivery', 'attendance'].includes(route.name)) 
        { return (
           <TouchableOpacity
             key={route.name}

@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
-const deliverySchema = new mongoose.Schema(
+  const deliverySchema = new mongoose.Schema(
   {
     direction: {
       type: String,
-      enum: ["in", "out"],
+      enum: ["in", "out", "transfer"],
       required: true,
     },
 
@@ -21,14 +21,14 @@ const deliverySchema = new mongoose.Schema(
 
     content: [
       { 
-        itemType: { type: String, enum: ["rawMaterial", "product"], required: true },
+        itemType: { type: String, enum: ["RawMaterial", "Product"], required: true },
         itemId: { type: Schema.Types.ObjectId, required: true },
         quantity: { type: Number, required: true },
-        unit: { type: String, required: true },
       },
     ],
 
     locationId: { type: Schema.Types.ObjectId, ref: "Location" , required: true },
+    toLocationId: { type: Schema.Types.ObjectId, ref: "Location" },
     billIds: [
       {
         type: Schema.Types.ObjectId,

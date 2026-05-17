@@ -23,6 +23,7 @@ export const updateLocation = async (locationId, updateData, userId) => {
         address: updateData.address ?? undefined,
         contact: updateData.contact ?? undefined,
         capacity: updateData.capacity ?? undefined,
+        isActive: updateData.isActive ?? undefined,
         updatedBy: userId 
     };
 

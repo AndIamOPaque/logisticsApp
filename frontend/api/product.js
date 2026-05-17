@@ -26,3 +26,18 @@ export const correctStock = async (id, adjustmentData) => {
     throw new Error(message); 
   }
 };
+
+export const fetchProductById = async (id) => {
+  const response = await api.get(`/product/${id}`);
+  return response.data.data;
+};
+
+export const fetchProductLogs = async (id) => {
+  const response = await api.get(`/product/${id}/logs`);
+  return response.data.data;
+};
+
+export const updateProduct = async (id, data) => {
+  const response = await api.patch(`/product/${id}`, data);
+  return response.data.data;
+};

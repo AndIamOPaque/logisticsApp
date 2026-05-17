@@ -17,5 +17,6 @@ router.post("/:id/items", mockAuth, BillController.addItems);
 router.delete("/:id/items", mockAuth, BillController.removeItems);
 router.post("/:id/attachments", mockAuth, BillController.addAttachment);
 router.delete("/:id/attachments/:attachmentId", mockAuth, BillController.removeAttachment);
+router.delete("/:id", mockAuth, BillController.deleteBill);
 
 export default router;

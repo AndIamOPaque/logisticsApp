@@ -1,6 +1,7 @@
 import RawMaterial from "../models/rawMaterial.model.js";
 import mongoose from "mongoose";
-import { correctStock, getStockLevels } from "../services/inventory.service.js";
+import { correctStock, getStockLevels, getInventoryMovements } from "../services/inventory.service.js";
+import Product from "../models/product.model.js";
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -14,6 +15,11 @@ export const getRawMaterials = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const query = {};
+
+    // By default exclude inactive unless explicitly requested
+    if (req.query.includeInactive !== 'true') {
+      query.isActive = { $ne: false };
+    }
 
     if (name) {
       const safeName = escapeRegExp(name);
@@ -187,4 +193,24 @@ export const getRawMaterialStockLevels = async (req, res, next) => {
   }catch(error){
     next(error);
   }
-}
+};
+
+export const getRawMaterialLogs = async (req, res, next) => {
+  try {
+    const logs = await getInventoryMovements('RawMaterial', req.params.id);
+    res.status(200).json({ success: true, data: logs });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getProductsUsingMaterial = async (req, res, next) => {
+  try {
+    const products = await Product.find({ 'rawMaterials.material': req.params.id })
+      .select('name code salesPrice unit')
+      .lean();
+    res.status(200).json({ success: true, data: products });
+  } catch (error) {
+    next(error);
+  }
+};

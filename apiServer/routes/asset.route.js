@@ -11,6 +11,7 @@ router.get("/", AssetController.getAssets);
 router.post("/", mockAuth, AssetController.createAsset);
 router.get("/:id", AssetController.getAssetById);
 router.patch("/:id", AssetController.updateAsset);
+router.delete("/:id", AssetController.deleteAsset);
 router.post("/:id/service", mockAuth, AssetController.addServiceRecord);
 
 export default router;

@@ -263,3 +263,21 @@ const calculateVarianceReport = async (session, order) => {
 
   return report;
 };
+
+/**
+ * Get all inventory moves (stock events) linked to a production order.
+ * Used to populate the Activity/History tab in the UI.
+ */
+export const getProductionInventoryMoves = async (orderId) => {
+  const InventoryMove = (await import('../models/inventoryMove.model.js')).default;
+  const moves = await InventoryMove.find({
+    referenceId: orderId,
+    referenceModel: 'ProductionOrder',
+  })
+    .populate('item', 'name code')
+    .populate('location', 'name')
+    .populate('createdBy', 'name')
+    .sort({ createdAt: -1 })
+    .lean();
+  return moves;
+};

@@ -1,5 +1,5 @@
 import ProductionOrder from "../models/productionOrder.model.js";
-import {createProductionOrder ,logMaterialUsage, logProductionOutput, returnUnusedMaterial, updateOrderStatus } from "../services/production.service.js";
+import { createProductionOrder, logMaterialUsage, logProductionOutput, returnUnusedMaterial, updateOrderStatus, getProductionInventoryMoves } from "../services/production.service.js"
 
 export const createNewProductionOrder = async (req, res, next) => {
   try {
@@ -18,7 +18,21 @@ export const getProductionOrder = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const order = await ProductionOrder.find()
+    // Build query with optional filters
+    const query = {};
+    if (req.query.status) query.status = req.query.status;
+    if (req.query.startDate || req.query.endDate) {
+      query.createdAt = {};
+      if (req.query.startDate) query.createdAt.$gte = new Date(req.query.startDate);
+      if (req.query.endDate) {
+        const end = new Date(req.query.endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    const orders = await ProductionOrder.find(query)
+      .sort({ createdAt: -1 })
       .populate("product", "name code costPerUnit salesPrice")
       .populate("location", "name")
       .populate("createdBy", "name email")
@@ -26,10 +40,10 @@ export const getProductionOrder = async (req, res, next) => {
       .limit(limit)
       .lean();
 
-    const total = await ProductionOrder.countDocuments();
+    const total = await ProductionOrder.countDocuments(query);
 
     res.json({
-      data: order,
+      data: orders,
       pagination: {
         total,
         page,
@@ -100,6 +114,15 @@ export const changeProductionOrderStatus = async (req, res, next) => {
     const { status } = req.body;
     const updatedOrder = await updateOrderStatus(orderId, status, userId);
     res.status(200).json(updatedOrder);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getProductionLogs = async (req, res, next) => {
+  try {
+    const moves = await getProductionInventoryMoves(req.params.id);
+    res.status(200).json({ success: true, data: moves });
   } catch (err) {
     next(err);
   }

@@ -75,11 +75,15 @@ const billSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["PENDING", "PAID", "OVERDUE"],
+      enum: ["PENDING", "PAID", "OVERDUE", "CANCELLED"],
       default: "PENDING",
       index: true,
     },
     dueDate: Date,
+    linkedDelivery: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Delivery'
+    },
     notes: String, 
     attachments: [
       {

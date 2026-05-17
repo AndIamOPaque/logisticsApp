@@ -63,6 +63,19 @@ export const updateEmployeeInfo = async (req, res) => {
   }
 };
 
+export const deleteEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deactivatedEmployee = await Employee.findByIdAndUpdate(id, { isActive: false }, { new: true });
+    
+    if (!deactivatedEmployee) return res.status(404).json({ success: false, message: "Employee not found" });
+
+    return res.status(200).json({ success: true, data: deactivatedEmployee });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // --- 2. FINANCIAL & DASHBOARD ---
 
 // GET /employees/:id

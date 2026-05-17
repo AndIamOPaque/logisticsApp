@@ -1,51 +1,45 @@
 import api from './client';
 
 export const fetchProductions = async (queryParams = {}) => {
-    const response = await api.get('/production-order', {params: queryParams});
-    if(response.status !== 200){
-        throw new Error(response.data.message || 'Could not load Productions');
-    }
-    return response.data.data;
-}
+  const response = await api.get('/production-order', { params: queryParams });
+  if (response.status !== 200) {
+    throw new Error(response.data.message || 'Could not load Productions');
+  }
+  return response.data; // { data: [...], pagination: { total, page, pages } }
+};
 
 export const fetchProductionById = async (id) => {
-    try{
-        const response = await api.get(`/production-order/${id}`);
-        return response.data.data;
-    }catch(err){
-        const message = err.response?.data?.message || 'Could not load Prodcution';
-        throw new Error(message);
-    }
-}
+  const response = await api.get(`/production-order/${id}`);
+  return response.data.data;
+};
 
-export const recordProductionOutput = async (id, quantityProduced) => {
-    try{
-        console.log('this is the output data', quantityProduced);
-        const response = await api.patch(`production-order/${id}/product-output`, quantityProduced);
-        return response.data;
-    }catch(err){
-        const message = err.response?.data?.message || 'Output Log Failed';
-        throw new Error(message);
-    }
-}
+export const createProductionOrder = async (orderData) => {
+  const response = await api.post('/production-order', orderData);
+  return response.data;
+};
 
+export const recordProductionOutput = async (id, body) => {
+  const response = await api.patch(`/production-order/${id}/product-output`, body);
+  return response.data;
+};
 
-export const changeProductionStatus = async (id, status) => {
-    try{
-        const response = await api.patch(`production-order/${id}/status`, status);
-        return response.data;
-    }catch(err){
-         const message = err.response?.data?.message || 'Status Change Failed';
-        throw new Error(message);
-    }
-}
+export const logMaterialUsage = async (id, body) => {
+  const response = await api.patch(`/production-order/${id}/material-usage`, body);
+  return response.data;
+};
 
-export const createProductionOrder = async(orderData)=>{
-    try{
-        const response = await api.push('production-order', orderData);
-        return response.data;
-    }catch(err){
-        const message = err.response?.data?.message || 'Status Change Failed';
-        throw new Error(message);
-    }
-}
+export const returnMaterials = async (id, body) => {
+  const response = await api.patch(`/production-order/${id}/return-material`, body);
+  return response.data;
+};
+
+export const changeProductionStatus = async (id, body) => {
+  const response = await api.patch(`/production-order/${id}/status`, body);
+  return response.data;
+};
+
+// Fetches all inventory moves linked to this production order
+export const fetchProductionLogs = async (orderId) => {
+  const response = await api.get(`/production-order/${orderId}/logs`);
+  return response.data.data;
+};

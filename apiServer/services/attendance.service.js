@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import Attendance from '../models/attendance.model.js';
 import Employee from '../models/employee.model.js';
+import AttendanceMetrics from '../models/attendanceMetrics.model.js';
 
 const normalizeDate = (dateInput) => {
   const d = new Date(dateInput);
@@ -175,4 +177,144 @@ export const getSingleRecord = async (employeeId, dateStr) => {
     date: normalizedDate
   })
   .populate('employee', 'name role contact.phone');
+};
+
+// --- BATCH DAILY ATTENDANCE (Form-based marking) ---
+// Reuses updateAttendanceStatus for record upsert, then handles wages
+// following the same balance pattern from clockOut
+export const markDailyAttendanceBatch = async (dateStr, entries) => {
+  const normalizedDate = normalizeDate(dateStr);
+  if (isNaN(normalizedDate.getTime())) throw new Error('Invalid date format.');
+
+  // Block future dates
+  const today = normalizeDate(new Date());
+  if (normalizedDate > today) {
+    throw new Error('Cannot mark attendance for future dates.');
+  }
+
+  const results = { marked: 0, errors: [] };
+
+  for (const entry of entries) {
+    try {
+      const { employeeId, status } = entry;
+      if (!employeeId || !status) {
+        results.errors.push({ employeeId, message: 'employeeId and status are required.' });
+        continue;
+      }
+
+      // Check if a record already exists (for wage reversal)
+      const existingRecord = await Attendance.findOne({
+        employee: employeeId,
+        date: normalizedDate
+      });
+
+      const employee = await Employee.findById(employeeId);
+      if (!employee) {
+        results.errors.push({ employeeId, message: 'Employee not found.' });
+        continue;
+      }
+
+      // --- Reverse previous payableAmount if record existed ---
+      // Same reversal pattern as updateAttendanceRecord
+      if (existingRecord && existingRecord.payableAmount > 0) {
+        employee.balance -= existingRecord.payableAmount;
+      }
+
+      // --- Upsert the attendance record ---
+      const record = await updateAttendanceStatus(employeeId, dateStr, status);
+
+      // --- Calculate wage based on status ---
+      // Reuses the wage logic pattern from clockOut
+      let payableAmount = 0;
+
+      if (employee.wage) {
+        if (status === 'present') {
+          if (employee.wage.type === 'daily') {
+            payableAmount = employee.wage.amount;
+          } else if (employee.wage.type === 'hourly') {
+            // Form-based marking doesn't have in/out times
+            // Use standard 8hr workday for hourly workers
+            payableAmount = employee.wage.amount * 8;
+          }
+          // monthly / per_trip: handled elsewhere, payableAmount stays 0
+        } else if (status === 'half-day') {
+          if (employee.wage.type === 'daily') {
+            payableAmount = employee.wage.amount / 2;
+          } else if (employee.wage.type === 'hourly') {
+            payableAmount = employee.wage.amount * 4; // half-day = ~4hrs
+          }
+        }
+        // absent / leave: payableAmount stays 0
+      }
+
+      // --- Update record payableAmount ---
+      record.payableAmount = payableAmount;
+      await record.save();
+
+      // --- Update employee balance (same pattern as clockOut) ---
+      employee.balance += payableAmount;
+      await employee.save();
+
+      results.marked++;
+    } catch (err) {
+      results.errors.push({ employeeId: entry.employeeId, message: err.message });
+    }
+  }
+
+  return results;
+};
+
+// --- SCHEDULED METRICS CALCULATION ---
+// Called by scheduler.js cron job, uses MongoDB sessions for consistency
+export const calculateAttendanceMetrics = async (employeeId, month, year) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 1);
+
+    const records = await Attendance.find({
+      employee: employeeId,
+      date: { $gte: startDate, $lt: endDate }
+    }).session(session);
+
+    const daysPresent = records.filter(r => r.status === 'present').length;
+    const daysAbsent = records.filter(r => r.status === 'absent').length;
+    const halfDays = records.filter(r => r.status === 'half-day').length;
+    const leaves = records.filter(r => r.status === 'leave').length;
+    const totalMarked = records.length;
+
+    const attendancePercentage = totalMarked > 0
+      ? Math.round(((daysPresent + halfDays * 0.5) / totalMarked) * 100)
+      : 0;
+
+    const metrics = await AttendanceMetrics.findOneAndUpdate(
+      { employee: employeeId, month, year },
+      {
+        $set: {
+          daysPresent,
+          daysAbsent,
+          halfDays,
+          leaves,
+          totalMarked,
+          attendancePercentage
+        }
+      },
+      { upsert: true, new: true, session }
+    );
+
+    await session.commitTransaction();
+    return metrics;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+// --- FETCH STORED METRICS ---
+export const getStoredMetrics = async (employeeId, month, year) => {
+  return await AttendanceMetrics.findOne({ employee: employeeId, month, year }).lean();
 };

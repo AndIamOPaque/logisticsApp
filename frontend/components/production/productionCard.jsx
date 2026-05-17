@@ -4,12 +4,12 @@ import React, { useState } from 'react';
 import { router } from 'expo-router';
 
 const ProductionCard = ({ production }) => {
+  const [expanded, setExpanded] = useState(false);
+
   if (!production?.product) {
     console.error("Critical Data Missing: Production order lacks product details", production?._id);
     return null;
   }
-
-  const [expanded, setExpanded] = useState(false);
 
   const dateObj = new Date(production.createdAt || Date.now());
   const dateDisplay = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
@@ -79,7 +79,7 @@ const ProductionCard = ({ production }) => {
             {production.notes && (
               <View className="bg-muted/50 p-3 rounded-md mb-3">
                 <Text className="text-xs text-muted-foreground italic">
-                  "{production.notes}"
+                  {production.notes}
                 </Text>
               </View>
             )}

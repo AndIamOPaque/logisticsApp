@@ -25,17 +25,25 @@ export const updateDeliveryStatus = async (deliveryId, newStatus, userId) => {
     if (delivery.direction === 'out' && newStatus === 'in-transit') {
         await processStockMovement(delivery, -1, userId, session); 
     }
-    
     else if (delivery.direction === 'in' && newStatus === 'delivered') {
         await processStockMovement(delivery, 1, userId, session); 
     }
+    else if (delivery.direction === 'transfer') {
+        if (newStatus === 'in-transit') {
+            await processStockMovement(delivery, -1, userId, session, delivery.locationId, 'transfer');
+        } else if (newStatus === 'delivered') {
+            if (!delivery.toLocationId) throw new Error("Critical Data Error: Transfer is missing toLocationId");
+            await processStockMovement(delivery, 1, userId, session, delivery.toLocationId, 'transfer');
+        }
+    }
     if (newStatus === 'delivered' && delivery.driverId && !delivery.isDriverPaid && delivery.tripCost > 0) {
+        const updateResult = await Employee.updateOne(
+            { _id: delivery.driverId },
+            { $inc: { balance: delivery.tripCost } },
+            { session }
+        );
         
-        const driver = await Employee.findById(delivery.driverId).session(session);
-        
-        if (driver) {
-            driver.balance += delivery.tripCost;
-            await driver.save({ session });
+        if (updateResult.matchedCount > 0) {
             delivery.isDriverPaid = true; 
         }
     }
@@ -57,14 +65,14 @@ export const updateDeliveryStatus = async (deliveryId, newStatus, userId) => {
   }
 };
 
-const processStockMovement = async (delivery, multiplier, userId, session) => {
+const processStockMovement = async (delivery, multiplier, userId, session, overrideLocationId = null, purposeOverride = null) => {
     for (const item of delivery.content) {
         await moveInventory({
             item: item.itemId,
             itemModel: item.itemType, 
             quantity: item.quantity * multiplier, 
-            location: delivery.locationId, 
-            purpose: delivery.direction === 'in' ? 'intake' : 'sale',
+            location: overrideLocationId || delivery.locationId, 
+            purpose: purposeOverride || (delivery.direction === 'in' ? 'intake' : 'sale'),
             referenceId: delivery._id,    
             referenceModel: 'Delivery',   
             userId,
@@ -84,13 +92,13 @@ export const createDelivery = async (deliveryData, userId) => {
       }
       
       for (const item of deliveryData.content) {
-        const Model = item.itemType === 'Product' ? Product : RawMaterial;
+        const Model = item.itemType.toLowerCase() === 'product' ? Product : RawMaterial;
         const validItem = await Model.findById(item.itemId).session(session);
         if (!validItem) {
           throw new Error(`Item not found: ${item.itemId} (${item.itemType})`);
         }
   
-        if (deliveryData.direction === 'out') {
+        if (deliveryData.direction === 'out' || deliveryData.direction === 'transfer') {
           const stock = await Stock.findOne({
             item: item.itemId,
             location: deliveryData.locationId 
@@ -156,6 +164,7 @@ export const queryDeliveries = async (filters, page = 1, limit = 20) => {
     .skip(skip)
     .limit(limit)
     .populate('locationId', 'name')
+    .populate('toLocationId', 'name')
     .populate('buyerId', 'name')
     .populate('supplierId', 'name');
 

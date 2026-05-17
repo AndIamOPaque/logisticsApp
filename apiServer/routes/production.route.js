@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { changeProductionOrderStatus, createNewProductionOrder, getProductionOrder, getProductionOrderById, recordMaterialUsage, recordProductionOutput, returnUnusedMaterials } from "../controllers/production.controller.js";
+import { changeProductionOrderStatus, createNewProductionOrder, getProductionOrder, getProductionOrderById, recordMaterialUsage, recordProductionOutput, returnUnusedMaterials, getProductionLogs } from "../controllers/production.controller.js";
 import { mockAuth } from "../middlewares/auth.middleware.js";
 
 
@@ -12,5 +12,6 @@ router.patch("/:id/material-usage", mockAuth, recordMaterialUsage);
 router.patch("/:id/product-output", mockAuth, recordProductionOutput);
 router.patch("/:id/return-material", mockAuth, returnUnusedMaterials);
 router.patch("/:id/status", mockAuth, changeProductionOrderStatus);
+router.get("/:id/logs", getProductionLogs);
 
 export default router;
