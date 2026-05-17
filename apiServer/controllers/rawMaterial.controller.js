@@ -16,6 +16,11 @@ export const getRawMaterials = async (req, res, next) => {
 
     const query = {};
 
+    // By default exclude inactive unless explicitly requested
+    if (req.query.includeInactive !== 'true') {
+      query.isActive = { $ne: false };
+    }
+
     if (name) {
       const safeName = escapeRegExp(name);
       query.name = new RegExp('^' + safeName, 'i');

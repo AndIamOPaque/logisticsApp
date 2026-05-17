@@ -26,6 +26,19 @@ export const getBillById = async (req, res) => {
   }
 };
 
+export const deleteBill = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedBill = await BillService.deleteBill(id);
+    if (!deletedBill) {
+      return res.status(404).json({ success: false, message: "Bill not found" });
+    }
+    return res.status(200).json({ success: true, data: deletedBill });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // 2. Get Bills (Filter/Sort/Paginate)
 export const getBills = async (req, res) => {
   try {

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, ScrollView, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { PlusIcon, FactoryIcon, SearchIcon, XIcon } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,27 @@ const STATUS_PILLS = [
   { label: 'Done', value: 'completed' },
 ];
 
+// Groups an array of production orders by their creation date (YYYY-MM-DD)
+function groupByDate(items) {
+  const groups = [];
+  const map = {};
+  items.forEach((item) => {
+    const key = new Date(item.createdAt).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    if (!map[key]) {
+      map[key] = [];
+      groups.push({ date: key, items: map[key] });
+    }
+    map[key].push(item);
+  });
+  return groups;
+}
+
 const ProductionPage = () => {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const tabBarHeight = useBottomTabBarHeight();
@@ -66,6 +86,9 @@ const ProductionPage = () => {
     );
   }, [productions, searchText]);
 
+  // Group filtered results by date for display
+  const groupedProductions = useMemo(() => groupByDate(filteredProductions), [filteredProductions]);
+
   const hasDateFilter = startDate || endDate;
 
   return (
@@ -98,19 +121,22 @@ const ProductionPage = () => {
         </Button>
       </View>
 
-      {/* Search Bar — client-side only */}
-      <View className="bg-card border-b border-border px-4 py-2">
-        <View className="bg-muted rounded-lg flex-row items-center px-3 gap-x-2">
-          <Icon as={SearchIcon} className="text-muted-foreground size-3.5" />
-          <Input
-            placeholder="Search by product name..."
+      {/* Search Bar */}
+      <View className="bg-card border-b border-border px-4 py-1.5">
+        <View className="border-border bg-background flex-row items-center gap-x-2 rounded-xl border px-3 py-2">
+          <Icon as={SearchIcon} className="text-muted-foreground size-4" />
+          <TextInput
+            className="text-foreground flex-1 text-sm"
+            placeholder="Search by product name…"
+            placeholderTextColor="#888"
             value={searchText}
             onChangeText={setSearchText}
-            className="flex-1 border-0 bg-transparent text-sm py-2"
+            returnKeyType="search"
+            autoCorrect={false}
           />
           {searchText.length > 0 && (
             <TouchableOpacity onPress={() => setSearchText('')}>
-              <Icon as={XIcon} className="text-muted-foreground size-3.5" />
+              <Icon as={XIcon} className="text-muted-foreground size-4" />
             </TouchableOpacity>
           )}
         </View>
@@ -212,12 +238,22 @@ const ProductionPage = () => {
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: tabBarHeight + 58 }}>
-          {filteredProductions.map((production) => (
-            <ProductionCard
-              key={production._id}
-              production={production}
-              onPress={() => router.push(`/production/${production._id}`)}
-            />
+          {groupedProductions.map(({ date, items: dayItems }) => (
+            <View key={date}>
+              {/* Date separator */}
+              <View className="bg-background px-4 py-2 border-b border-border">
+                <Text className="text-muted-foreground text-xs font-bold tracking-widest uppercase">
+                  {date}
+                </Text>
+              </View>
+              {dayItems.map((production) => (
+                <ProductionCard
+                  key={production._id}
+                  production={production}
+                  onPress={() => router.push(`/production/${production._id}`)}
+                />
+              ))}
+            </View>
           ))}
         </ScrollView>
       )}

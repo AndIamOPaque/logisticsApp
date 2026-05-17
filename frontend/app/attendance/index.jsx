@@ -64,7 +64,7 @@ export default function DailyAttendanceScreen() {
       const record = attendanceRecords.find(
         a => (a.employee?._id || a.employee) === emp._id
       );
-      statusMap[emp._id] = record ? record.status : (isPast ? 'absent' : 'pending');
+      statusMap[emp._id] = record ? record.status : 'absent';
     }
     setLocalStatuses(statusMap);
     setHasChanges(false);

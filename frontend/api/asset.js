@@ -24,3 +24,8 @@ export const addServiceRecord = async (id, data) => {
   const response = await api.post(`/asset/${id}/service`, data);
   return response.data;
 };
+
+export const deleteAsset = async (id) => {
+  const response = await api.delete(`/asset/${id}`);
+  return response.data;
+};

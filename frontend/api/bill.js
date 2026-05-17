@@ -21,6 +21,11 @@ export const updateBill = async (id, data) => {
   return response.data;
 };
 
+export const deleteBill = async (id) => {
+  const response = await api.delete(`/bill/${id}`);
+  return response.data;
+};
+
 export const markBillPaid = async (id, data) => {
   // data: { paymentMethod, paymentDate, notes }
   const response = await api.patch(`/bill/${id}/pay`, data);

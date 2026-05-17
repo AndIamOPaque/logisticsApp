@@ -32,13 +32,26 @@ export default function AttendanceTab({ employeeId }) {
     setAttYear(newYear);
   };
 
+  const calculatedMetrics = React.useMemo(() => {
+    if (!attendanceLogs || attendanceLogs.length === 0) return attMetrics;
+    const stats = { daysPresent: 0, daysAbsent: 0, halfDays: 0, leaves: 0, totalMarked: attendanceLogs.length };
+    attendanceLogs.forEach(log => {
+      if (log.status === 'present') stats.daysPresent++;
+      else if (log.status === 'absent') stats.daysAbsent++;
+      else if (log.status === 'half-day') stats.halfDays++;
+      else if (log.status === 'leave') stats.leaves++;
+    });
+    stats.attendancePercentage = stats.totalMarked > 0 ? Math.round(((stats.daysPresent + stats.halfDays * 0.5) / stats.totalMarked) * 100) : 0;
+    return { ...attMetrics, ...stats };
+  }, [attendanceLogs, attMetrics]);
+
   return (
     <View className="gap-y-4">
       {/* Month Navigator */}
       <MonthNavigator month={attMonth} year={attYear} onChange={handleMonthChange} />
 
       {/* Metrics */}
-      <AttendanceMetricsPills metrics={attMetrics} />
+      <AttendanceMetricsPills metrics={calculatedMetrics} />
 
       {/* Records List */}
       <Card>

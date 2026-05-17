@@ -58,6 +58,18 @@ export const updateAsset = async (req, res, next) => {
   }
 };
 
+export const deleteAsset = async (req, res, next) => {
+  try {
+    const asset = await Asset.findByIdAndUpdate(req.params.id, { status: 'retired' }, { new: true });
+    if (!asset) {
+      return res.status(404).json({ success: false, message: "Asset not found" });
+    }
+    res.json({ success: true, message: "Asset retired successfully", data: asset });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const addServiceRecord = async (req, res, next) => {
   try {
     const asset = await assetService.updateServiceRecords(

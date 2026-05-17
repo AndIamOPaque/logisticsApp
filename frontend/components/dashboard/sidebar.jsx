@@ -26,23 +26,23 @@ import {
   XIcon,
   PackageIcon,
   CalendarClockIcon,
-  ReceiptIcon
+  ReceiptIcon,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 // ─── Nav Config ─────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: 'Account',       href: '/account',       icon: UserCircleIcon    },
-  { label: 'Settings',      href: '/settings',      icon: SettingsIcon      },
-  { label: 'Location',      href: '/location',      icon: MapPinIcon        },
-  { label: 'Asset',         href: '/asset',         icon: WrenchIcon        },
-  { label: 'Party',         href: '/party',         icon: UsersIcon         },
-  { label: 'Raw Materials', href: '/raw-material',  icon: FlaskConicalIcon  },
-  { label: 'Product',       href: '/product',       icon: PackageIcon       },
-  { label: 'Employees',     href: '/employee',      icon: UsersIcon         },
-  { label: 'Attendance',    href: '/attendance',    icon: CalendarClockIcon },
-  { label: 'Bills',         href: '/bill',          icon: ReceiptIcon       },
+  // { label: 'Account',       href: '/account',       icon: UserCircleIcon    },
+  // { label: 'Settings',      href: '/settings',      icon: SettingsIcon      },
+  { label: 'Location', href: '/location', icon: MapPinIcon },
+  { label: 'Asset', href: '/asset', icon: WrenchIcon },
+  { label: 'Party', href: '/party', icon: UsersIcon },
+  { label: 'Raw Materials', href: '/raw-material', icon: FlaskConicalIcon },
+  { label: 'Product', href: '/product', icon: PackageIcon },
+  { label: 'Employees', href: '/employee', icon: UsersIcon },
+  { label: 'Attendance', href: '/attendance', icon: CalendarClockIcon },
+  { label: 'Bills', href: '/bill', icon: ReceiptIcon },
 ];
 
 const THEME_ICONS = { light: SunIcon, dark: MoonStarIcon };
@@ -151,7 +151,7 @@ export function Sidebar({ isOpen, onClose }) {
         </View>
 
         {/* Nav Items */}
-        <ScrollView 
+        <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 16, gap: 2 }}>

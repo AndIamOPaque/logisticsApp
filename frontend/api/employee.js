@@ -20,6 +20,11 @@ export const updateEmployeeInfo = async (id, data) => {
   return response.data;
 };
 
+export const deleteEmployee = async (id) => {
+  const response = await api.delete(`/employee/${id}`);
+  return response.data;
+};
+
 export const updateWage = async (id, data) => {
   const response = await api.patch(`/employee/${id}/wage`, data);
   return response.data;

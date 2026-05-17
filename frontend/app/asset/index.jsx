@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -22,6 +23,7 @@ import {
   MonitorIcon,
   SofaIcon,
   CogIcon,
+  SearchIcon,
 } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -259,7 +261,10 @@ export default function AssetListScreen() {
     queryFn: () => fetchAssets(filterCategory ? { category: filterCategory } : {}),
   });
 
+  const [search, setSearch] = React.useState('');
+
   const assets = data?.data ?? [];
+  const filteredAssets = assets.filter(a => a.name.toLowerCase().includes(search.toLowerCase()) || (a.location?.name || '').toLowerCase().includes(search.toLowerCase()));
 
   return (
     <SafeAreaView className="bg-background" style={{ flex: 1 }} edges={['top']}>
@@ -289,6 +294,27 @@ export default function AssetListScreen() {
           <Icon as={PlusIcon} className="text-primary-foreground size-4" />
           <Text className="text-primary-foreground text-xs font-semibold">Add</Text>
         </Button>
+      </View>
+
+      {/* Search bar */}
+      <View className="border-border bg-card border-b px-4 py-1.5">
+        <View className="border-border bg-background flex-row items-center gap-x-2 rounded-xl border px-3 py-2">
+          <Icon as={SearchIcon} className="text-muted-foreground size-4" />
+          <TextInput
+            className="text-foreground flex-1 text-sm"
+            placeholder="Search assets…"
+            placeholderTextColor="#888"
+            value={search}
+            onChangeText={setSearch}
+            returnKeyType="search"
+            autoCorrect={false}
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <Icon as={XIcon} className="text-muted-foreground size-4" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Category filter */}
@@ -346,18 +372,20 @@ export default function AssetListScreen() {
           </View>
         )}
         {isError && <ErrorMessage error={{message: 'Could not load assets.'}} onRetry={refetch} />}
-        {!isPending && !isError && assets.length === 0 && (
+        {!isPending && !isError && filteredAssets.length === 0 && (
           <View className="items-center gap-y-3 py-16">
             <View className="bg-muted rounded-full p-4">
               <Icon as={WrenchIcon} className="text-muted-foreground size-8" />
             </View>
             <Text className="text-muted-foreground text-sm">No assets found.</Text>
-            <Button size="sm" onPress={() => setCreateVisible(true)}>
-              <Text>Add First Asset</Text>
-            </Button>
+            {search.length === 0 && (
+              <Button size="sm" onPress={() => setCreateVisible(true)}>
+                <Text>Add First Asset</Text>
+              </Button>
+            )}
           </View>
         )}
-        {assets.map((asset) => (
+        {filteredAssets.map((asset) => (
           <AssetCard
             key={asset._id}
             asset={asset}

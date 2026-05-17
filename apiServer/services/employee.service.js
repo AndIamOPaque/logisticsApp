@@ -104,6 +104,10 @@ export const processPayroll = async (adminUserId, { employeeId, amount, paymentM
     // AND triggers the Balance Deduction logic we wrote earlier.
     const bill = await createNewBill(billData, adminUserId);
     
+    // Deduct balance from employee since bill is created as PAID
+    employee.balance -= bill.grandTotal;
+    await employee.save();
+    
     return bill;
 };
 

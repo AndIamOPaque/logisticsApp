@@ -36,3 +36,8 @@ export const fetchProductLogs = async (id) => {
   const response = await api.get(`/product/${id}/logs`);
   return response.data.data;
 };
+
+export const updateProduct = async (id, data) => {
+  const response = await api.patch(`/product/${id}`, data);
+  return response.data.data;
+};

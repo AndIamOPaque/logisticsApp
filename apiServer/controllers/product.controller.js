@@ -7,14 +7,20 @@ export const getProducts = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const products = await Product.find()
+    const query = {};
+    // By default exclude inactive unless explicitly requested
+    if (req.query.includeInactive !== 'true') {
+      query.isActive = { $ne: false };
+    }
+
+    const products = await Product.find(query)
       .populate("rawMaterials.material", "name code costPerUnit")
       .populate("createdBy", "name email")
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const total = await Product.countDocuments();
+    const total = await Product.countDocuments(query);
 
     res.status(200).json({
       data: products,

@@ -118,7 +118,27 @@ export const updateExistingBill = async (billId, billData) => {
     if (billData.dueDate) bill.dueDate = billData.dueDate;
     if (billData.notes) bill.notes = billData.notes;
     if (billData.status) bill.status = billData.status;
-    if (billData.linkedDelivery !== undefined) bill.linkedDelivery = billData.linkedDelivery;
+    
+    // Handle linkedDelivery changes — sync Delivery.billIds
+    if (billData.linkedDelivery !== undefined) {
+        const Delivery = mongoose.model('Delivery');
+        const oldDeliveryId = bill.linkedDelivery;
+        const newDeliveryId = billData.linkedDelivery;
+
+        // Remove from old delivery's billIds
+        if (oldDeliveryId && String(oldDeliveryId) !== String(newDeliveryId)) {
+            await Delivery.findByIdAndUpdate(oldDeliveryId, {
+                $pull: { billIds: bill._id }
+            });
+        }
+        // Add to new delivery's billIds
+        if (newDeliveryId) {
+            await Delivery.findByIdAndUpdate(newDeliveryId, {
+                $addToSet: { billIds: bill._id }
+            });
+        }
+        bill.linkedDelivery = newDeliveryId;
+    }
     
     bill.updatedBy = billData.updatedBy;
 
@@ -133,6 +153,10 @@ export const getBillById = async (billId) => {
         .populate('linkedDelivery', '_id status direction')
         .lean();
     return bill;
+};
+
+export const deleteBill = async (billId) => {
+    return await Bill.findByIdAndDelete(billId);
 };
 
 export const getBills = async ({ 

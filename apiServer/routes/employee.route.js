@@ -11,6 +11,7 @@
         router.get("/", EmployeeController.getEmployees);      // List/Search
         router.post("/", EmployeeController.createEmployee);   // Add new worker
         router.patch("/:id", EmployeeController.updateEmployeeInfo); // Update phone/address/notes
+        router.delete("/:id", EmployeeController.deleteEmployee);    // Deactivate worker
 
         // --- 2. FINANCIALS & DASHBOARD ---
         router.get("/:id", EmployeeController.getEmployeeProfile); // Profile + Current Month Stats

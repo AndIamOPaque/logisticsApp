@@ -26,7 +26,7 @@ export default function ProductPage() {
   }, [search]);
 
   const {data: products, isPending: isProductPending, error: productError, refetch} = useQuery({
-    queryFn: () => fetchProducts({search: debouncedSearch}),
+    queryFn: () => fetchProducts({search: debouncedSearch, includeInactive: 'true'}),
     queryKey:['products', debouncedSearch],
     staleTime: 100*60*60,
   });
@@ -67,8 +67,8 @@ export default function ProductPage() {
       </View>
 
       {/* Search bar */}
-      <View className="border-border bg-card border-b px-4 pt-2 pb-3">
-        <View className="border-border bg-background flex-row items-center gap-x-2 rounded-xl border px-3 py-2.5">
+      <View className="border-border bg-card border-b px-4 py-1.5">
+        <View className="border-border bg-background flex-row items-center gap-x-2 rounded-xl border px-3 py-2">
           <Icon as={SearchIcon} className="text-muted-foreground size-4" />
           <TextInput
             className="text-foreground flex-1 text-sm"

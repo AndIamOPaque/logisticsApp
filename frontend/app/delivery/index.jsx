@@ -12,6 +12,9 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import DeliveryCard from '@/components/delivery/deliveryCard';
 import AddDeliveryModal from '@/components/delivery/addDeliveryModal';
 import { fetchDeliveries } from '@/api/delivery';
+import { fetchLocations } from '@/api/location';
+import { fetchParties } from '@/api/party';
+import { ThemedSelect } from '@/components/ui/themed-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const STATUSES = ['pending', 'in-transit', 'delivered', 'cancelled'];
@@ -23,6 +26,8 @@ export default function DeliveryPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState(null);
   const [directionFilter, setDirectionFilter] = useState(null);
+  const [partyFilter, setPartyFilter] = useState(null);
+  const [locationFilter, setLocationFilter] = useState(null);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -33,9 +38,20 @@ export default function DeliveryPage() {
   const queryParams = useMemo(() => ({
     status: statusFilter || undefined,
     direction: directionFilter || undefined,
+    partyId: partyFilter || undefined,
+    locationId: locationFilter || undefined,
     startDate: startDate ? startDate.toISOString().split('T')[0] : undefined,
     endDate: endDate ? endDate.toISOString().split('T')[0] : undefined,
-  }), [statusFilter, directionFilter, startDate, endDate]);
+  }), [statusFilter, directionFilter, partyFilter, locationFilter, startDate, endDate]);
+
+  // Fetch parties & locations for filter dropdowns
+  const { data: locationsData } = useQuery({ queryKey: ['locations'], queryFn: fetchLocations });
+  const { data: partiesData } = useQuery({ queryKey: ['parties'], queryFn: fetchParties });
+
+  const locationOptions = (Array.isArray(locationsData?.data) ? locationsData.data : (Array.isArray(locationsData) ? locationsData : []))
+    .map(l => ({ label: l.name, value: l._id }));
+  const partyOptions = (Array.isArray(partiesData?.data) ? partiesData.data : (Array.isArray(partiesData) ? partiesData : []))
+    .map(p => ({ label: p.name, value: p._id }));
 
   const {
     data: deliveries,
@@ -44,7 +60,7 @@ export default function DeliveryPage() {
     refetch,
   } = useQuery({
     queryFn: () => fetchDeliveries(queryParams),
-    queryKey: ['deliveries', statusFilter, directionFilter, queryParams.startDate, queryParams.endDate],
+    queryKey: ['deliveries', statusFilter, directionFilter, partyFilter, locationFilter, queryParams.startDate, queryParams.endDate],
   });
 
   const hasDateFilter = startDate || endDate;
@@ -141,6 +157,26 @@ export default function DeliveryPage() {
             <Text className="text-destructive text-xs font-semibold">Clear</Text>
           </TouchableOpacity>
         )}
+      </View>
+
+      {/* Party & Location Filters */}
+      <View className="bg-card border-b border-border flex-row items-center gap-x-3 px-4 py-2">
+        <View className="flex-1">
+          <ThemedSelect
+            items={[{ label: 'All Parties', value: '' }, ...partyOptions]}
+            value={partyFilter || ''}
+            onValueChange={(v) => setPartyFilter(v || null)}
+            placeholder="Party"
+          />
+        </View>
+        <View className="flex-1">
+          <ThemedSelect
+            items={[{ label: 'All Locations', value: '' }, ...locationOptions]}
+            value={locationFilter || ''}
+            onValueChange={(v) => setLocationFilter(v || null)}
+            placeholder="Location"
+          />
+        </View>
       </View>
 
       {showStartPicker && (

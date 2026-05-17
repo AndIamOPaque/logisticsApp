@@ -3,7 +3,13 @@ import * as locationService from "../services/location.service.js";
 
 export const getAllLocations = async (req, res, next) => {
   try {
-    const locations = await Location.find().sort({ name: 1 });
+    const query = {};
+    // By default, only return active locations.
+    // The locations management page passes includeInactive=true to see all.
+    if (req.query.includeInactive !== 'true') {
+      query.isActive = { $ne: false };
+    }
+    const locations = await Location.find(query).sort({ name: 1 });
     res.json({ success: true, data: locations });
   } catch (err) {
     next(err);

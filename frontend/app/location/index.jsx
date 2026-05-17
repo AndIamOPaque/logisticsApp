@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -21,6 +22,7 @@ import {
   WarehouseIcon,
   BuildingIcon,
   ChevronRightIcon,
+  SearchIcon,
 } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -46,33 +48,35 @@ const TYPE_CONFIG = {
 function LocationCard({ location, onPress }) {
   const cfg = TYPE_CONFIG[location.type] ?? TYPE_CONFIG.factory;
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      className="bg-card border-border flex-row items-center gap-x-3 rounded-2xl border px-4 py-4">
-      <View className={`rounded-xl p-2.5 ${cfg.bg}`}>
-        <Icon as={cfg.icon} className={`size-5 ${cfg.color}`} />
-      </View>
-      <View className="flex-1">
-        <Text className="text-foreground text-sm font-semibold" numberOfLines={1}>
-          {location.name}
-        </Text>
-        <Text className="text-muted-foreground mt-0.5 text-xs" numberOfLines={1}>
-          {location.address}
-        </Text>
-        <View className="mt-1.5 flex-row items-center gap-x-2">
-          <View className={`rounded-full px-2 py-0.5 ${cfg.bg}`}>
-            <Text className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</Text>
-          </View>
-          {!location.isActive && (
-            <View className="bg-muted rounded-full px-2 py-0.5">
-              <Text className="text-muted-foreground text-xs">Inactive</Text>
-            </View>
-          )}
+    <View className="bg-card border-b border-border">
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        className="flex-row items-center gap-x-3 px-4 py-4">
+        <View className={`rounded-xl p-2.5 ${cfg.bg}`}>
+          <Icon as={cfg.icon} className={`size-5 ${cfg.color}`} />
         </View>
-      </View>
-      <Icon as={ChevronRightIcon} className="text-muted-foreground size-4" />
-    </TouchableOpacity>
+        <View className="flex-1">
+          <Text className="text-foreground text-sm font-semibold" numberOfLines={1}>
+            {location.name}
+          </Text>
+          <Text className="text-muted-foreground mt-0.5 text-xs" numberOfLines={1}>
+            {location.address}
+          </Text>
+          <View className="mt-1.5 flex-row items-center gap-x-2">
+            <View className={`rounded-full px-2 py-0.5 ${cfg.bg}`}>
+              <Text className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</Text>
+            </View>
+            {!location.isActive && (
+              <View className="bg-destructive/10 rounded-full px-2 py-0.5">
+                <Text className="text-destructive text-xs font-medium">Inactive</Text>
+              </View>
+            )}
+          </View>
+        </View>
+        <Icon as={ChevronRightIcon} className="text-muted-foreground size-4" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -232,14 +236,24 @@ export default function LocationListScreen() {
   const router = useRouter();
   const [createVisible, setCreateVisible] = React.useState(false);
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [filterType, setFilterType] = React.useState(null);
+  const [search, setSearch] = React.useState('');
   const tabBarHeight = useBottomTabBarHeight();
 
   const { data, isPending, isError, refetch } = useQuery({
-    queryKey: ['locations'],
-    queryFn: fetchLocations,
+    queryKey: ['locations', 'all'],
+    queryFn: () => fetchLocations({ includeInactive: 'true' }),
   });
 
   const locations = data?.data ?? [];
+  const filtered = locations.filter(loc => {
+    if (filterType && loc.type !== filterType) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      return loc.name.toLowerCase().includes(q) || (loc.address || '').toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   return (
     <SafeAreaView className="bg-background" style={{ flex: 1 }} edges={['top']}>
@@ -271,13 +285,62 @@ export default function LocationListScreen() {
         </Button>
       </View>
 
+      {/* Search bar */}
+      <View className="border-border bg-card border-b px-4 py-1.5">
+        <View className="border-border bg-background flex-row items-center gap-x-2 rounded-xl border px-3 py-2">
+          <Icon as={SearchIcon} className="text-muted-foreground size-4" />
+          <TextInput
+            className="text-foreground flex-1 text-sm"
+            placeholder="Search locations…"
+            placeholderTextColor="#888"
+            value={search}
+            onChangeText={setSearch}
+            returnKeyType="search"
+            autoCorrect={false}
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <Icon as={XIcon} className="text-muted-foreground size-4" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Type filter */}
+      <View style={{ height: 46 }} className="border-border bg-card border-b">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: 8, alignItems: 'center', height: 46 }}>
+          <TouchableOpacity
+            onPress={() => setFilterType(null)}
+            className={`rounded-full border px-3 py-1.5 ${!filterType ? 'border-primary bg-primary' : 'border-border bg-transparent'}`}>
+            <Text className={`text-xs font-semibold ${!filterType ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+              All
+            </Text>
+          </TouchableOpacity>
+          {LOCATION_TYPES.map((t) => {
+            const cfg = TYPE_CONFIG[t];
+            const active = filterType === t;
+            return (
+              <TouchableOpacity
+                key={t}
+                onPress={() => setFilterType(active ? null : t)}
+                className={`flex-row items-center gap-x-1.5 rounded-full border px-3 py-1.5 ${active ? 'border-primary bg-primary' : 'border-border bg-transparent'}`}>
+                <Icon as={cfg.icon} className={`size-3.5 ${active ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                <Text className={`text-xs font-semibold ${active ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+                  {cfg.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       {/* List */}
       <ScrollView
         className="flex-1"
-        contentContainerClassName="px-4 py-4 gap-y-3"
         showsVerticalScrollIndicator={false}
-        onRefresh={refetch}
-        refreshing={isPending}
         contentContainerStyle={{ paddingBottom: tabBarHeight + 58 }}>
         {isPending && (
           <View className="items-center gap-y-2 py-16">
@@ -292,18 +355,22 @@ export default function LocationListScreen() {
             </Button>
           </View>
         )}
-        {!isPending && !isError && locations.length === 0 && (
+        {!isPending && !isError && filtered.length === 0 && (
           <View className="items-center gap-y-3 py-16">
             <View className="bg-muted rounded-full p-4">
               <Icon as={MapPinIcon} className="text-muted-foreground size-8" />
             </View>
-            <Text className="text-muted-foreground text-sm">No locations yet.</Text>
-            <Button size="sm" onPress={() => setCreateVisible(true)}>
-              <Text>Add First Location</Text>
-            </Button>
+            <Text className="text-muted-foreground text-sm">
+              {search ? `No results for "${search}"` : 'No locations yet.'}
+            </Text>
+            {!search && (
+              <Button size="sm" onPress={() => setCreateVisible(true)}>
+                <Text>Add First Location</Text>
+              </Button>
+            )}
           </View>
         )}
-        {locations.map((loc) => (
+        {filtered.map((loc) => (
           <LocationCard
             key={loc._id}
             location={loc}

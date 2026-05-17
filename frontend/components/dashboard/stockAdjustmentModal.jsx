@@ -13,9 +13,12 @@ import {
 } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { correctStock } from '@/api/product';
+import { correctRawMaterialStock } from '@/api/raw-material';
+import { fetchLocations } from '@/api/location';
 import { XIcon, SlidersHorizontalIcon } from 'lucide-react-native';
+import { ThemedSelect } from '@/components/ui/themed-select';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -73,7 +76,8 @@ function TypeChip({
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 export function StockAdjustmentModal({
-  product,
+  item,
+  itemModel = 'Product', // 'Product' | 'RawMaterial'
   visible,
   onClose,
 }) {
@@ -91,20 +95,29 @@ export function StockAdjustmentModal({
   const quantityNum = Number(form.quantity);
   const isNegative = !isNaN(quantityNum) && quantityNum < 0;
 
-  // ── Locations from cache ──
+  // ── Locations via query (not cache-only) ──
 
-  const locationsData = queryClient.getQueryData(
-    ['locations']
-  );
-  const locations = locationsData?.data ?? [];
+  const { data: locationsData } = useQuery({
+    queryKey: ['locations'],
+    queryFn: fetchLocations,
+  });
+  
+  const rawLocArray = Array.isArray(locationsData?.data) 
+    ? locationsData.data 
+    : (Array.isArray(locationsData) ? locationsData : []);
+
+  const locationOptions = rawLocArray.map(loc => ({ label: loc.name, value: loc._id }));
 
   // ── Mutation ──
 
   const mutation = useMutation({
-    mutationFn: (payload) => correctStock(product._id, payload),
+    mutationFn: (payload) => {
+      const fn = itemModel === 'RawMaterial' ? correctRawMaterialStock : correctStock;
+      return fn(item._id, payload);
+    },
     meta: { successMessage: 'Stock adjusted successfully' },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stockLevels', product._id] });
+      queryClient.invalidateQueries({ queryKey: ['stockLevels', item._id] });
       setForm(INITIAL_FORM);
       onClose();
     },
@@ -115,8 +128,8 @@ export function StockAdjustmentModal({
     mutation.mutate({
       ...form,
       quantity: quantityNum,
-      item: product._id,
-      itemModel: 'Product',
+      item: item._id,
+      itemModel: itemModel,
     });
   };
 
@@ -154,7 +167,7 @@ export function StockAdjustmentModal({
               <View>
                 <Text className="text-card-foreground text-base font-bold">Adjust Stock</Text>
                 <Text className="text-muted-foreground text-xs" numberOfLines={1}>
-                  {product.name}{product.code ? ` · ${product.code}` : ''}
+                  {item?.name}{item?.code ? ` · ${item.code}` : ''}
                 </Text>
               </View>
             </View>
@@ -231,41 +244,12 @@ export function StockAdjustmentModal({
             {/* Location */}
             <View>
               <SectionLabel>Location</SectionLabel>
-              {locations.length === 0 ? (
-                <Text className="text-muted-foreground text-sm">
-                  No locations loaded. Ensure the locations query is cached.
-                </Text>
-              ) : (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="flex-row"
-                  contentContainerClassName="gap-x-2"
-                >
-                  {locations.map(loc => (
-                    <TouchableOpacity
-                      key={loc._id}
-                      onPress={() => setForm(f => ({ ...f, location: loc._id }))}
-                      activeOpacity={0.7}
-                      className={`px-4 py-2.5 rounded-xl border ${
-                        form.location === loc._id
-                          ? 'bg-primary border-primary'
-                          : 'bg-muted border-border'
-                      }`}
-                    >
-                      <Text
-                        className={`text-sm font-semibold ${
-                          form.location === loc._id
-                            ? 'text-primary-foreground'
-                            : 'text-foreground'
-                        }`}
-                      >
-                        {loc.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
+              <ThemedSelect
+                items={locationOptions}
+                value={form.location}
+                onValueChange={val => setForm(f => ({ ...f, location: val }))}
+                placeholder="Select a location…"
+              />
             </View>
 
             {/* Error message */}
