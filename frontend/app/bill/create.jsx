@@ -11,7 +11,10 @@ import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { fetchParties } from '@/api/party';
+import { fetchEmployees } from '@/api/employee';
 import { createBill, uploadFile } from '@/api/bill';
+import { ThemedSelect } from '@/components/ui/themed-select';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CreateBillPage() {
   const qc = useQueryClient();
@@ -22,15 +25,31 @@ export default function CreateBillPage() {
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [status, setStatus] = useState('PAID');
   const [partyId, setPartyId] = useState(null);
+  const [partyModel, setPartyModel] = useState('Party');
   const [photoUri, setPhotoUri] = useState(null);
+  const [notes, setNotes] = useState('');
+  const [dueDate, setDueDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Fetch Parties for the dropdown/selection
   const { data: partyData } = useQuery({
     queryKey: ['parties'],
     queryFn: () => fetchParties({ limit: 100 }),
   });
-  const parties = partyData?.data?.parties || [];
+  const { data: empData } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => fetchEmployees({ limit: 100 }),
+  });
+  
+  const parties = partyData?.data?.parties || (Array.isArray(partyData?.data) ? partyData.data : []);
+  const employees = empData?.data || [];
+
+  const combinedOptions = [
+    ...parties.map(p => ({ label: `(Party) ${p.name}`, value: `Party|${p._id}` })),
+    ...employees.map(e => ({ label: `(Employee) ${e.name}`, value: `Employee|${e._id}` }))
+  ];
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -67,14 +86,19 @@ export default function CreateBillPage() {
         }
       }
 
-      const selectedParty = parties.find(p => p._id === partyId);
+      const [modelType, id] = partyId.split('|');
+      const selectedEntity = modelType === 'Party' 
+        ? parties.find(p => p._id === id)
+        : employees.find(e => e._id === id);
 
       const billData = {
         type,
         category,
         paymentMethod,
-        status: 'PAID', // Assuming direct paid creation for simplicity
+        status,
         paymentDate: new Date(),
+        dueDate,
+        notes,
         items: [
           {
             name: category,
@@ -82,14 +106,12 @@ export default function CreateBillPage() {
             quantity: 1,
           }
         ],
-        // If Expense: Money goes FROM us TO party
-        // If Income: Money goes FROM party TO us
         from: type === 'EXPENSE' 
-          ? { model: 'User', party: '6641a2b3c4d5e6f700000000', name: 'Self' } // Fake self ID for now
-          : { model: 'Party', party: selectedParty._id, name: selectedParty.name },
+          ? { model: 'User', party: '6962456fb8324d04c3c77a95', name: 'Self' }
+          : { model: modelType, party: selectedEntity._id, name: selectedEntity.name },
         to: type === 'EXPENSE'
-          ? { model: 'Party', party: selectedParty._id, name: selectedParty.name }
-          : { model: 'User', party: '6641a2b3c4d5e6f700000000', name: 'Self' },
+          ? { model: modelType, party: selectedEntity._id, name: selectedEntity.name }
+          : { model: 'User', party: '6962456fb8324d04c3c77a95', name: 'Self' },
       };
 
       if (attachment) {
@@ -161,18 +183,65 @@ export default function CreateBillPage() {
           />
         </View>
 
+        <View className="mb-6 z-10">
+          <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Select Party / Employee</Text>
+          <ThemedSelect
+            items={combinedOptions}
+            value={partyId}
+            onValueChange={setPartyId}
+            placeholder="Select a recipient/sender..."
+          />
+        </View>
+
+        {/* Status */}
         <View className="mb-6">
-          <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Select Party</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-            {parties.map(p => (
+          <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Status</Text>
+          <View className="flex-row gap-2">
+            {['PENDING', 'PAID'].map(s => (
               <TouchableOpacity
-                key={p._id}
-                onPress={() => setPartyId(p._id)}
-                className={`border rounded-lg px-4 py-2 mr-2 ${partyId === p._id ? 'bg-primary/10 border-primary' : 'bg-card border-border'}`}>
-                <Text className={partyId === p._id ? 'text-primary font-bold' : 'text-foreground'}>{p.name}</Text>
+                key={s}
+                onPress={() => setStatus(s)}
+                className={`border rounded-full px-4 py-2 ${status === s ? 'bg-foreground border-foreground' : 'bg-card border-border'}`}>
+                <Text className={status === s ? 'text-background font-bold text-xs' : 'text-foreground text-xs'}>{s}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
+        </View>
+
+        {/* Due Date */}
+        <View className="mb-6">
+          <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Due Date</Text>
+          <TouchableOpacity 
+            onPress={() => setShowDatePicker(true)}
+            className="bg-card border border-border rounded-lg px-4 py-3">
+            <Text className="text-foreground">{dueDate.toDateString()}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={dueDate}
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                setShowDatePicker(false);
+                if (date) setDueDate(date);
+              }}
+            />
+          )}
+        </View>
+
+        {/* Notes */}
+        <View className="mb-4">
+          <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Notes</Text>
+          <TextInput
+            className="bg-card text-foreground border border-border rounded-lg px-4 py-3"
+            placeholder="Additional notes..."
+            placeholderTextColor="#888"
+            multiline
+            numberOfLines={3}
+            value={notes}
+            onChangeText={setNotes}
+            textAlignVertical="top"
+          />
         </View>
 
         {/* Payment Method */}
