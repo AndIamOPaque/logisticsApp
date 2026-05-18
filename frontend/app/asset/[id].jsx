@@ -50,7 +50,11 @@ export default function AssetDetailScreen() {
       qc.invalidateQueries({ queryKey: ['assets'] });
       router.back();
     },
+    onError: (err) => {
+      console.error('Asset retire failed:', err?.message);
+    },
   });
+
 
   if (isPending)
     return (

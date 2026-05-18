@@ -34,6 +34,7 @@ import { ErrorMessage } from '@/components/ui/errorMessage';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { fetchAssets, createAsset } from '@/api/asset';
 import { fetchLocations } from '@/api/location';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const CATEGORY_CONFIG = {
@@ -97,8 +98,9 @@ function CreateAssetModal({ visible, onClose }) {
     status: 'active',
     cost: '',
     notes: '',
-    purchaseDate: '',
+    purchaseDate: new Date(),
   });
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -118,7 +120,7 @@ function CreateAssetModal({ visible, onClose }) {
         status: 'active',
         cost: '',
         notes: '',
-        purchaseDate: '',
+        purchaseDate: new Date(),
       });
     },
   });
@@ -127,7 +129,7 @@ function CreateAssetModal({ visible, onClose }) {
     mutate({
       ...form,
       cost: form.cost ? Number(form.cost) : undefined,
-      purchaseDate: form.purchaseDate || undefined,
+      purchaseDate: form.purchaseDate instanceof Date ? form.purchaseDate.toISOString() : undefined,
     });
   };
 
@@ -212,13 +214,30 @@ function CreateAssetModal({ visible, onClose }) {
               </View>
               <View className="flex-1 gap-y-1.5">
                 <Text className="text-foreground text-sm font-medium">Purchase Date</Text>
-                <Input
-                  placeholder="YYYY-MM-DD"
-                  value={form.purchaseDate}
-                  onChangeText={(v) => set('purchaseDate', v)}
-                />
+                <Button
+                  variant="outline"
+                  onPress={() => setShowDatePicker(true)}
+                  className="justify-start">
+                  <Text className="text-foreground">
+                    {form.purchaseDate instanceof Date
+                      ? form.purchaseDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                      : 'Select date'}
+                  </Text>
+                </Button>
               </View>
             </View>
+            {showDatePicker && (
+              <DateTimePicker
+                value={form.purchaseDate instanceof Date ? form.purchaseDate : new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) set('purchaseDate', selectedDate);
+                }}
+                maximumDate={new Date()}
+              />
+            )}
 
             {/* Notes */}
             <View className="gap-y-1.5">

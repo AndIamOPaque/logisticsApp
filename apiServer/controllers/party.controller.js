@@ -23,7 +23,10 @@ export const getPartyById = async (req, res, next) => {
 
 export const createParty = async (req, res, next) => {
   try {
-    const newParty = new Party(req.body);
+    const newParty = new Party({
+      ...req.body,
+      createdBy: req.user._id
+    });
     const savedParty = await newParty.save();
     res.status(201).json(savedParty);
   } catch (err) {
@@ -35,8 +38,8 @@ export const updateParty = async (req, res, next) => {
   try {
     const updatedParty = await Party.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true }
+      { ...req.body, updatedBy: req.user._id },
+      { new: true, runValidators: false }
     );
     if (!updatedParty) {
       return res.status(404).json({ message: "Party not found" });

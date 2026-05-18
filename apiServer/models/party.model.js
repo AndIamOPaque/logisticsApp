@@ -15,21 +15,25 @@ const partySchema = new mongoose.Schema(
     },
     address: {
       type: String,
+      default: "Not provided",
+      set: v => v === "" ? "Not provided" : v,
     },
     contact: [
       {
-        person: String,
-        phone: String,
-        email: String,
+        person: { type: String, default: "Unknown", set: v => v === "" ? "Unknown" : v },
+        phone: { type: String, default: "N/A", set: v => v === "" ? "N/A" : v },
+        email: { type: String, default: "N/A", set: v => v === "" ? "N/A" : v },
       },
     ],
     gstin: {
       type: String,
+      default: "N/A",
+      set: v => v === "" ? "N/A" : v,
     },
     bankingDetails: {
-      bankName: String,
-      accountNumber: String,
-      ifscCode: String,
+      bankName: { type: String, default: "N/A", set: v => v === "" ? "N/A" : v },
+      accountNumber: { type: String, default: "N/A", set: v => v === "" ? "N/A" : v },
+      ifscCode: { type: String, default: "N/A", set: v => v === "" ? "N/A" : v },
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
