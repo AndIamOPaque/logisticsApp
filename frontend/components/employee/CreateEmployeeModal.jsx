@@ -49,7 +49,7 @@ export default function CreateEmployeeModal({ visible, onClose }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['employees'] });
       onClose();
-      setForm({ name: '', role: 'worker', phone: '', address: '', wageType: 'daily', wageAmount: '' });
+      setForm({ name: '', role: 'worker', phone: '', address: '', wageType: 'daily', wageAmount: '', joiningDate: new Date() });
     },
   });
 

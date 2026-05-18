@@ -140,7 +140,7 @@ export const updateRawMaterial = async (req, res, next) => {
       updateData,
       {
         new: true,
-        runValidators: true
+        runValidators: false
       }
     );
 

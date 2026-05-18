@@ -58,8 +58,12 @@ export default function RawMaterialManagePage() {
   const deleteMutation = useMutation({
     mutationFn: () => updateRawMaterial(id, { isActive: false }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['rawMaterials'] });
+      qc.invalidateQueries({ queryKey: ['rawMaterial', id] });
+      qc.invalidateQueries({ queryKey: ['raw-materials'] });
       router.back();
+    },
+    onError: (err) => {
+      console.error('Deactivate failed:', err);
     },
   });
 

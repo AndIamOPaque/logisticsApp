@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchLocations } from '@/api/location';
 import ProductCard from '@/components/productCard';
 import { StockAdjustmentModal } from '@/components/dashboard/stockAdjustmentModal';
+import { CreateProductModal } from '@/components/product/productModals';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function ProductPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [createVisible, setCreateVisible] = useState(false);
   
   React.useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350);
@@ -60,7 +62,7 @@ export default function ProductPage() {
             <Text className="text-foreground text-lg font-bold">Products</Text>
           </View>
         </View>
-        <Button size="sm" className="flex-row items-center gap-x-1.5">
+        <Button size="sm" onPress={() => setCreateVisible(true)} className="flex-row items-center gap-x-1.5">
           <Icon as={PlusIcon} className="text-primary-foreground size-4" />
           <Text className="text-primary-foreground text-xs font-semibold">Add</Text>
         </Button>
@@ -126,6 +128,7 @@ export default function ProductPage() {
           onClose={() => setSelectedProduct(null)} 
         />
       )}
+      <CreateProductModal visible={createVisible} onClose={() => setCreateVisible(false)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </SafeAreaView>
   );

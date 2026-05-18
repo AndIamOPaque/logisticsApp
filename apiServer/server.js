@@ -67,13 +67,13 @@ app.use('/api/upload', uploadRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
+  console.error(`[ERROR] ${req.method} ${req.url} →`, err.message);
   res.status(statusCode).json({
     success: false,
     message: err.message || "Internal Server Error",
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
-  throw err;
 });
+
 setupCronJobs();
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

@@ -32,7 +32,7 @@ export const updateAsset = async (assetId, updateData, userId) => {
         throw new Error(`Asset not found: ${assetId}`);
     }
 
-    if (updateData.location) {
+    if (updateData.location && updateData.location !== '') {
         const locationExists = await Location.exists({ _id: updateData.location });
         if (!locationExists) {
             throw new Error(`Location not found: ${updateData.location}`);

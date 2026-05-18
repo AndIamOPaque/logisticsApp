@@ -41,18 +41,27 @@ export default function EmployeeDetail() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteEmployee(id),
+    mutationFn: () => updateEmployeeInfo(id, { isActive: false }),
+    meta: { successMessage: 'Employee deactivated' },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['employee', id] });
       qc.invalidateQueries({ queryKey: ['employees'] });
       router.back();
+    },
+    onError: (err) => {
+      console.error('Deactivate employee failed:', err?.message);
     },
   });
 
   const reactivateMutation = useMutation({
     mutationFn: () => updateEmployeeInfo(id, { isActive: true }),
+    meta: { successMessage: 'Employee reactivated' },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['employee', id] });
       qc.invalidateQueries({ queryKey: ['employees'] });
+    },
+    onError: (err) => {
+      console.error('Reactivate employee failed:', err?.message);
     },
   });
 

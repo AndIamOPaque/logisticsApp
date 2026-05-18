@@ -69,7 +69,7 @@ export function ServiceModal({ assetId, visible, onClose }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['asset', assetId] });
       onClose();
-      setForm({ description: '', date: '' });
+      setForm({ description: '', date: new Date() });
     },
   });
 
